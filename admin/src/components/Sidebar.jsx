@@ -20,10 +20,6 @@ const Sidebar = () => {
       </NavLink>
     </li>
   );
-<NavLink to="/admin/advice-list" className={({ isActive }) => `...`}>
-  <img src={assets.list_icon} alt="list" />
-  <p className="hidden md:block">Зөвлөгөөний жагсаалт</p>
-</NavLink>
 
   return (
     <aside className="min-h-screen bg-white border-r shadow-sm w-64">
@@ -34,7 +30,7 @@ const Sidebar = () => {
             <SidebarLink to="/all-appointments" icon={assets.appointment_icon} label="Захиалгууд" />
             <SidebarLink to="/add-doctor" icon={assets.add_icon} label="Эмч нэмэх" />
             <SidebarLink to="/doctor-list" icon={assets.people_icon} label="Эмчийн жагсаалт" />
-            <SidebarLink to="/admin/add-advice" icon={assets.info_icon} label="Зөвлөгөө нэмэх" />
+            {/* "Зөвлөгөө нэмэх" цэсийг устгасан */}
           </ul>
         )}
         {dToken && (
