@@ -20,6 +20,7 @@ import Login from './pages/Login';
 import DoctorAppointments from './pages/Doctor/DoctorAppointments';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
+import DoctorAdvise from './pages/Doctor/DoctorAdvise';
 import DoctorQuizResults from './pages/Doctor/DoctorQuizResults'; // ✅ ШИНЭЭР НЭМЭХ
 
 
@@ -43,6 +44,7 @@ const App = () => {
           <Route path='/doctor-dashboard' element={<DoctorDashboard />} />
           <Route path='/doctor-appointments' element={<DoctorAppointments />} />
           <Route path='/doctor-profile' element={<DoctorProfile />} />
+          <Route path='/doctor-advise' element={<DoctorAdvise />} />
           
 
           {/* ✅ Advice Routes */}
