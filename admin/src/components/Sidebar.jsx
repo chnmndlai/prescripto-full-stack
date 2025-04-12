@@ -38,7 +38,7 @@ const Sidebar = () => {
             <SidebarLink to="/doctor-dashboard" icon={assets.home_icon} label="Хяналтын самбар" />
             <SidebarLink to="/doctor-appointments" icon={assets.appointment_icon} label="Миний захиалгууд" />
             <SidebarLink to="/doctor-profile" icon={assets.people_icon} label="Профайл" />
-            <SidebarLink to="/doctor-advise" icon={assets.advise_icon} label="Зөвлөгөө" />
+            <SidebarLink to="/doctor-advise" icon={assets.advise_1} label="Зөвлөгөө" />
           </ul>
         )}
       </nav>
