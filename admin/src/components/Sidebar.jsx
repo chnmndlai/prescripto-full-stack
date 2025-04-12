@@ -1,8 +1,9 @@
 import React, { useContext } from 'react';
-import { assets } from '../assets/assets';
 import { NavLink } from 'react-router-dom';
 import { DoctorContext } from '../context/DoctorContext';
 import { AdminContext } from '../context/AdminContext';
+import { assets } from '../assets/assets';
+import adviseIcon from '../assets/advise.svg'; // ✅ advise.svg зургийг импортолсон
 
 const Sidebar = () => {
   const { dToken } = useContext(DoctorContext);
@@ -30,7 +31,6 @@ const Sidebar = () => {
             <SidebarLink to="/all-appointments" icon={assets.appointment_icon} label="Захиалгууд" />
             <SidebarLink to="/add-doctor" icon={assets.add_icon} label="Эмч нэмэх" />
             <SidebarLink to="/doctor-list" icon={assets.people_icon} label="Эмчийн жагсаалт" />
-            {/* "Зөвлөгөө нэмэх" цэсийг устгасан */}
           </ul>
         )}
         {dToken && (
@@ -38,7 +38,7 @@ const Sidebar = () => {
             <SidebarLink to="/doctor-dashboard" icon={assets.home_icon} label="Хяналтын самбар" />
             <SidebarLink to="/doctor-appointments" icon={assets.appointment_icon} label="Миний захиалгууд" />
             <SidebarLink to="/doctor-profile" icon={assets.people_icon} label="Профайл" />
-            <SidebarLink to="/doctor-advise" icon={assets.advise_1} label="Зөвлөгөө" />
+            <SidebarLink to="/doctor-advice" icon={adviseIcon} label="Зөвлөгөө" /> {/* advise.svg ашиглаж байна */}
           </ul>
         )}
       </nav>
