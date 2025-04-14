@@ -6,30 +6,30 @@ import connectCloudinary from "./config/cloudinary.js"
 import userRouter from "./routes/userRoute.js"
 import doctorRouter from "./routes/doctorRoute.js"
 import adminRouter from "./routes/adminRoute.js"
-import adviceRouter from './routes/adviceRouter.js';
+import adviceRouter from './routes/adviceRouter.js'
 
-// ✅ ЭНЭХҮҮ МӨРНҮҮДИЙН ДООР app-г зарлах ёстой
+// ✅ app-ийг зарлаж байна
 const app = express()
 const port = process.env.PORT || 4000
 
-// DB ба Cloudinary холболтууд
+// ✅ DB болон Cloudinary холболт
 connectDB()
 connectCloudinary()
 
-// Middlewares
+// ✅ Middleware-ууд
 app.use(express.json())
 app.use(cors())
 
-// API Endpoints
+// ✅ API маршрутууд
 app.use("/api/user", userRouter)
-app.use("/api/admin", adminRouter) // энд байна
+app.use("/api/admin", adminRouter)
 app.use("/api/doctor", doctorRouter)
-app.use('/api/advice', adviceRouter) // энэ ч бас энд байх ёстой
+app.use('/api/advice', adviceRouter)  // ← Зөвлөгөөний API
 
-// Test route
+// ✅ Тест маршрутаар шалгах
 app.get("/", (req, res) => {
   res.send("API Working")
 })
 
-// Server start
+// ✅ Сервер ажиллуулах
 app.listen(port, () => console.log(`🚀 Server started on PORT: ${port}`))

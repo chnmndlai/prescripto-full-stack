@@ -1,78 +1,112 @@
-import { useEffect, useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
+import { DoctorContext } from '../../context/DoctorContext';
 
-const DoctorAdvice = () => {
-  const [advices, setAdvices] = useState([]);
-  const [newAdvice, setNewAdvice] = useState({ title: '', content: '' });
+const AddAdvice = () => {
+  const { dToken } = useContext(DoctorContext);
+  const [title, setTitle] = useState('');
+  const [summary, setSummary] = useState('');
+  const [image, setImage] = useState(null);
 
-  useEffect(() => {
-    fetchAdvices();
-  }, []);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-  const fetchAdvices = async () => {
-    try {
-      const res = await axios.get('http://localhost:4000/api/advices');
-      console.log('Fetched advices:', res.data); // Debug log
-      setAdvices(res.data);
-    } catch (error) {
-      console.error('Error fetching advices:', error);
+    console.log("🔵 Submitting...");
+    console.log("title:", title);
+    console.log("summary:", summary);
+    console.log("image:", image);
+    console.log("token:", dToken);
+    console.log("API:", import.meta.env.VITE_BACKEND_URL);
+
+    if (!title || !summary || !image) {
+      alert('Гарчиг, агуулга, зураг гурвын аль нэг нь дутуу байна.');
+      return;
     }
-  };
 
-  const handleAddAdvice = async () => {
-    if (!newAdvice.title || !newAdvice.content) return;
+    const formData = new FormData();
+    formData.append('title', title);
+    formData.append('summary', summary);
+    formData.append('image', image);
 
     try {
-      const res = await axios.post('http://localhost:4000/api/advices', newAdvice);
-      setAdvices([res.data, ...advices]);
-      setNewAdvice({ title: '', content: '' });
-    } catch (error) {
-      console.error('Error adding advice:', error);
+      const res = await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/advice/create`,
+        formData,
+        {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+            Authorization: `Bearer ${dToken}`,
+          },
+        }
+      );
+
+      console.log("✅ Response:", res.data);
+
+      if (res.data.success) {
+        alert('✅ Зөвлөгөө амжилттай нэмэгдлээ.');
+        setTitle('');
+        setSummary('');
+        setImage(null);
+        document.getElementById('adviceImageInput').value = null;
+        window.location.href = '/advice'; // 📌 Redirect to public advice view
+      } else {
+        alert(res.data.message || 'Амжилтгүй боллоо.');
+      }
+    } catch (err) {
+      console.error('❌ Advice нэмэхэд алдаа:', err);
+      if (err.response) {
+        alert(`❌ Сервер хариу: ${err.response.data.message}`);
+      } else {
+        alert('❌ Сүлжээний алдаа эсвэл сервер холбогдсонгүй.');
+      }
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto p-4">
-      <h2 className="text-2xl font-bold mb-4">🩺 Эмчийн зөвлөгөө</h2>
-
-      <div className="mb-6 border p-4 rounded bg-blue-50">
-        <h3 className="font-semibold mb-2">📤 Зөвлөгөө нэмэх</h3>
+    <div className="p-5">
+      <h2 className="text-xl font-bold mb-4">🩺 Зөвлөгөө нэмэх</h2>
+      <form onSubmit={handleSubmit} className="bg-blue-50 p-5 rounded space-y-3">
         <input
-          className="w-full p-2 mb-2 border rounded"
-          placeholder="Гарчиг"
-          value={newAdvice.title}
-          onChange={(e) => setNewAdvice({ ...newAdvice, title: e.target.value })}
+          type="text"
+          placeholder="Гарчиг оруулна уу"
+          className="w-full p-2 border rounded"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
         />
+
         <textarea
-          className="w-full p-2 mb-2 border rounded"
-          placeholder="Агуулга"
-          rows="4"
-          value={newAdvice.content}
-          onChange={(e) => setNewAdvice({ ...newAdvice, content: e.target.value })}
+          placeholder="Агуулгыг оруулна уу"
+          className="w-full p-2 border rounded h-28"
+          value={summary}
+          onChange={(e) => setSummary(e.target.value)}
         />
+
+        <input
+          id="adviceImageInput"
+          name="image"
+          type="file"
+          accept="image/*"
+          className="w-full"
+          onChange={(e) => setImage(e.target.files[0])}
+        />
+
+        {image && (
+          <img
+            src={URL.createObjectURL(image)}
+            alt="Preview"
+            className="w-48 mt-2 rounded shadow"
+          />
+        )}
+
         <button
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-          onClick={handleAddAdvice}
+          type="submit"
+          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
         >
           Нэмэх
         </button>
-      </div>
-
-      {advices.length > 0 ? (
-        advices.map((advice) => (
-          <div key={advice._id} className="mb-4 border-b pb-2">
-            <h4 className="text-lg font-semibold">{advice.title}</h4>
-            <p className="text-gray-700">{advice.content}</p>
-            <p className="text-sm text-gray-400">
-              🕓 {new Date(advice.createdAt).toLocaleString()}
-            </p>
-          </div>
-        ))
-      ) : (
-        <p className="text-gray-500">Одоогоор зөвлөгөө байхгүй байна.</p>
-      )}
+      </form>
     </div>
   );
 };
 
-export default DoctorAdvice;
+export default AddAdvice;

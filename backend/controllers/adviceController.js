@@ -3,8 +3,8 @@ import fs from 'fs';
 
 export const addAdvice = async (req, res) => {
   try {
-    console.log('REQ BODY:', req.body);   // энд байрлуулна
-    console.log('REQ FILE:', req.file);   // энд байрлуулна
+    console.log('REQ BODY:', req.body);
+    console.log('REQ FILE:', req.file);
 
     const { title, summary } = req.body;
     const image = req.file?.path;
@@ -23,7 +23,6 @@ export const addAdvice = async (req, res) => {
   }
 };
 
-
 export const getAdviceList = async (req, res) => {
   try {
     const advice = await Advice.find().sort({ createdAt: -1 });
@@ -38,7 +37,6 @@ export const getSingleAdvice = async (req, res) => {
   try {
     const advice = await Advice.findById(req.params.id);
     if (!advice) return res.status(404).json({ success: false, message: 'Зөвлөгөө олдсонгүй' });
-
     res.json({ success: true, advice });
   } catch (err) {
     console.error('Зөвлөгөө олж авах алдаа:', err);
@@ -51,7 +49,6 @@ export const deleteAdvice = async (req, res) => {
     const deleted = await Advice.findByIdAndDelete(req.params.id);
     if (!deleted) return res.status(404).json({ success: false, message: 'Устгах зөвлөгөө олдсонгүй' });
 
-    // Хуучин зураг устгах
     if (deleted.image) {
       fs.unlink(deleted.image, (err) => {
         if (err) console.error('Зураг устгах алдаа:', err);
@@ -78,7 +75,6 @@ export const updateAdvice = async (req, res) => {
       image: req.file?.path || existing.image,
     };
 
-    // Хуучин зураг устгах
     if (req.file?.path && existing.image && existing.image !== updateData.image) {
       fs.unlink(existing.image, (err) => {
         if (err) console.error('Хуучин зураг устгах алдаа:', err);

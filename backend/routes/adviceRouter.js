@@ -1,19 +1,21 @@
 import express from 'express';
-import Advice from '../models/adviceModel.js';
+import {
+  addAdvice,
+  getAdviceList,
+  getSingleAdvice,
+  deleteAdvice,
+  updateAdvice
+} from '../controllers/adviceController.js';
 
-const adviceRouter = express.Router();
+import multer from '../middleware/multer.js';
+import authDoctor from '../middleware/authDoctor.js';
 
-// GET advice by ID (Detail view)
-adviceRouter.get('/:id', async (req, res) => {
-  try {
-    const advice = await Advice.findById(req.params.id);
-    if (!advice) {
-      return res.status(404).json({ success: false, message: 'Зөвлөгөө олдсонгүй' });
-    }
-    res.json({ success: true, advice });
-  } catch (err) {
-    res.status(500).json({ success: false, message: 'Серверийн алдаа' });
-  }
-});
+const router = express.Router();
 
-export default adviceRouter;
+router.post('/create', authDoctor, multer.single('image'), addAdvice);
+router.get('/', getAdviceList);
+router.get('/:id', getSingleAdvice);
+router.delete('/:id', deleteAdvice);
+router.put('/:id', multer.single('image'), updateAdvice);
+
+export default router;

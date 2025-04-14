@@ -6,7 +6,7 @@ const Advice = () => {
   const [advice, setAdvice] = useState([]);
 
   useEffect(() => {
-    axios.get('/api/admin/advice-list').then(res => {
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/advice`).then(res => {
       if (res.data.success) setAdvice(res.data.advice);
     });
   }, []);

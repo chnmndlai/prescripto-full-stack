@@ -12,7 +12,7 @@ import Dashboard from './pages/Admin/Dashboard';
 import AllAppointments from './pages/Admin/AllAppointments';
 import AddDoctor from './pages/Admin/AddDoctor';
 import DoctorsList from './pages/Admin/DoctorsList';
-import AddAdvice from './pages/Admin/AddAdvice';
+
 import AdviceList from './pages/Admin/AdviceList';
 import EditAdvice from './pages/Admin/EditAdvice';
 
@@ -40,7 +40,7 @@ const App = () => {
           <Route path='/all-appointments' element={<AllAppointments />} />
           <Route path='/add-doctor' element={<AddDoctor />} />
           <Route path='/doctor-list' element={<DoctorsList />} />
-          <Route path='/admin/add-advice' element={<AddAdvice />} />
+          
           <Route path='/admin/advice-list' element={<AdviceList />} />
           <Route path='/admin/edit-advice/:id' element={<EditAdvice />} />
 

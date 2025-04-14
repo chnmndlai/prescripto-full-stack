@@ -26,8 +26,10 @@ const Login = () => {
         });
 
         if (data.success) {
-          localStorage.setItem('token', data.token);
-          setToken(data.token);
+          localStorage.setItem('dToken', data.token);
+setDToken(data.token);
+
+
           toast.success('Амжилттай бүртгэгдлээ!');
         } else {
           toast.error(data.message);
