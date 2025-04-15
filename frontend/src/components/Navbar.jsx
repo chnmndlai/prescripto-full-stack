@@ -4,7 +4,7 @@ import { AppContext } from '../context/AppContext';
 import { assets } from '../assets/assets';
 import { motion } from 'framer-motion';
 
-const Navbar = () => {
+const Navbar = ({ setShowChat }) => {
   const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
   const { token, setToken, userData } = useContext(AppContext);
@@ -87,12 +87,12 @@ const Navbar = () => {
             >
               Эмчид хандах
             </button>
-            <a
-              href='#chat'
+            <button
+              onClick={() => setShowChat(true)} // ✅ popup chatbot-ийг гаргах
               className='text-sm px-4 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600'
             >
               Чат эхлүүлэх
-            </a>
+            </button>
           </div>
         )}
 
@@ -134,8 +134,6 @@ const Navbar = () => {
         {/* Mobile menu icon */}
         <img onClick={() => setShowMenu(true)} src={assets.menu_icon} className='w-6 md:hidden cursor-pointer' alt="Цэс" />
       </div>
-
-      {/* Mobile drawer — Та хүсвэл энэ хэсгийг мөн сайжруулж өгье */}
     </motion.nav>
   );
 };
