@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useContext } from 'react';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
+import { AdminContext } from '../../context/AdminContext'; // Хэрэв админ хамгаалалттай бол
 
 const AdviceList = () => {
   const [adviceList, setAdviceList] = useState([]);
@@ -9,10 +10,14 @@ const AdviceList = () => {
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
 
+  const { aToken } = useContext(AdminContext); // Хэрэв JWT шаардлагатай бол
+
   const fetchAdvice = async () => {
     try {
       setLoading(true);
-      const res = await axios.get('/api/admin/advice-list');
+      const res = await axios.get('/api/admin/advice-list', {
+        headers: { Authorization: `Bearer ${aToken}` },
+      });
       if (res.data.success) {
         setAdviceList(res.data.advice);
       }
@@ -26,7 +31,9 @@ const AdviceList = () => {
   const handleDelete = async (id) => {
     if (!window.confirm('Та энэ зөвлөгөөг устгах уу?')) return;
     try {
-      const res = await axios.delete(`/api/admin/delete-advice/${id}`);
+      const res = await axios.delete(`/api/admin/delete-advice/${id}`, {
+        headers: { Authorization: `Bearer ${aToken}` },
+      });
       if (res.data.success) {
         toast.success('Устгалаа');
         fetchAdvice();
@@ -77,7 +84,7 @@ const AdviceList = () => {
               className="bg-white rounded-xl shadow-md hover:shadow-lg transition overflow-hidden"
             >
               <img
-                src={item.image || '/default.jpg'}
+                src={item.image}
                 alt={item.title}
                 className="w-full h-40 object-cover"
               />

@@ -7,8 +7,9 @@ import userRouter from "./routes/userRoute.js"
 import doctorRouter from "./routes/doctorRoute.js"
 import adminRouter from "./routes/adminRoute.js"
 import adviceRouter from './routes/adviceRouter.js'
-
-// ✅ app-ийг зарлаж байна
+import path from "path";
+import { fileURLToPath } from "url";
+import quizResultRouter from './routes/quizResultRoute.js';
 const app = express()
 const port = process.env.PORT || 4000
 
@@ -19,6 +20,13 @@ connectCloudinary()
 // ✅ Middleware-ууд
 app.use(express.json())
 app.use(cors())
+
+// ✅ __dirname workaround (Node ES module дээр)
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+// ✅ Зураг үзүүлэх static folder
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 // ✅ API маршрутууд
 app.use("/api/user", userRouter)
@@ -33,3 +41,5 @@ app.get("/", (req, res) => {
 
 // ✅ Сервер ажиллуулах
 app.listen(port, () => console.log(`🚀 Server started on PORT: ${port}`))
+
+app.use('/api/quiz-results', quizResultRouter);

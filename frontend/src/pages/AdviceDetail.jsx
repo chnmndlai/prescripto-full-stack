@@ -1,4 +1,4 @@
-// src/pages/AdviceDetail.jsx
+// AdviceDetail.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaStar } from 'react-icons/fa';
@@ -10,11 +10,15 @@ const AdviceDetail = () => {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get(`/api/advice/${id}`).then(res => {
-      if (res.data.success) setAdvice(res.data.advice);
-    });
+    axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/advice/${id}`)
+      .then(res => {
+        if (res.data.success) setAdvice(res.data.advice);
+        else setError('Зөвлөгөө олдсонгүй');
+      })
+      .catch(() => setError('Зөвлөгөө ачааллахад алдаа гарлаа.'));
   }, [id]);
 
   const handleSubmit = (e) => {
@@ -25,13 +29,19 @@ const AdviceDetail = () => {
     setComment('');
   };
 
+  if (error) return <p className="text-center text-red-500 py-20">{error}</p>;
   if (!advice) return <p className="text-center py-20">Уншиж байна...</p>;
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
-      <img src={advice.image} alt={advice.title} className="w-full h-64 object-cover rounded-xl mb-6" />
+      <img
+  src={advice.image}
+  alt={advice.title}
+  className="w-full h-64 object-cover rounded-xl mb-6"
+/>
+
       <h1 className="text-3xl font-bold text-gray-800 mb-4">{advice.title}</h1>
-      <p className="text-gray-700 mb-6">{advice.summary}</p>
+      <p className="text-gray-700 mb-6 whitespace-pre-line">{advice.summary}</p>
 
       <hr className="my-6" />
       <h2 className="text-xl font-semibold mb-2">Таны үнэлгээ</h2>

@@ -4,18 +4,27 @@ import {
   getAdviceList,
   getSingleAdvice,
   deleteAdvice,
-  updateAdvice
+  updateAdvice,
 } from '../controllers/adviceController.js';
 
-import multer from '../middleware/multer.js';
+import upload from '../middleware/multer.js';
 import authDoctor from '../middleware/authDoctor.js';
 
 const router = express.Router();
 
-router.post('/create', authDoctor, multer.single('image'), addAdvice);
+// зөвлөгөө нэмэх (эмчийн эрхээр)
+router.post('/create', authDoctor, upload.single('image'), addAdvice);
+
+// бүх зөвлөгөөг авах (нийтэд)
 router.get('/', getAdviceList);
+
+// ганц зөвлөгөө дэлгэрэнгүйгээр авах
 router.get('/:id', getSingleAdvice);
-router.delete('/:id', deleteAdvice);
-router.put('/:id', multer.single('image'), updateAdvice);
+
+// зөвлөгөө устгах (эмч/админ тохирох бол)
+router.delete('/:id', authDoctor, deleteAdvice);
+
+// зөвлөгөө шинэчлэх
+router.put('/:id', authDoctor, upload.single('image'), updateAdvice);
 
 export default router;

@@ -20,13 +20,25 @@ const adviceSchema = new mongoose.Schema(
     },
     category: {
       type: String,
-      enum: ['Сэтгэлзүй', 'Сэтгэл гутрал', 'Нойр', 'Гэр бүл', 'Ажлын стресс', 'Амьдралын хэв маяг'],
+      enum: [
+        'Сэтгэлзүй',
+        'Сэтгэл гутрал',
+        'Нойр',
+        'Гэр бүл',
+        'Ажлын стресс',
+        'Амьдралын хэв маяг',
+      ],
       default: 'Сэтгэлзүй',
     },
     createdBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Admin',
       default: null,
+    },
+    doctorId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Doctor',
+      required: true, // true болгох эсэхийг танд үлдээв
     },
     views: {
       type: Number,
