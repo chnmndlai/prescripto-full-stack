@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { FiX } from 'react-icons/fi';
+import { motion } from 'framer-motion';
 
 const Chatbot = ({ onClose }) => {
   const [messages, setMessages] = useState([
@@ -28,56 +29,64 @@ const Chatbot = ({ onClose }) => {
   };
 
   const getBotReply = (message) => {
-    if (message.includes('сэтгэл')) return '🧠 Сэтгэл гутрал олон хүчин зүйлээс шалтгаалж болно. Та илүү дэлгэрэнгүй хуваалцаж болох уу?';
-    if (message.includes('тест')) return '📋 Манай тест таны сэтгэлзүйн байдалд үнэлгээ өгнө. Та сонирхож байна уу?';
+    const msg = message.toLowerCase();
+    if (msg.includes('сэтгэл')) return '🧠 Сэтгэл гутрал олон хүчин зүйлээс шалтгаалж болно. Та илүү дэлгэрэнгүй хуваалцаж болох уу?';
+    if (msg.includes('тест')) return '📋 Манай тест таны сэтгэлзүйн байдалд үнэлгээ өгнө. Та сонирхож байна уу?';
     return '🤖 Таны асуултыг ойлголоо. Илүү дэлгэрэнгүй мэдээлэл өгвөл би туслахад бэлэн!';
   };
 
   return (
-    <div className="w-[360px] h-[520px] bg-white rounded-2xl shadow-xl border border-gray-200 relative flex flex-col overflow-hidden">
-      
+    <motion.div
+      initial={{ opacity: 0, y: 60 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+      className="w-[360px] h-[520px] bg-white rounded-2xl shadow-2xl border border-gray-200 fixed bottom-24 right-6 z-50 flex flex-col overflow-hidden"
+    >
       {/* Header */}
-      <div className="flex justify-between items-center bg-blue-600 text-white px-4 py-3">
+      <div className="flex justify-between items-center bg-gradient-to-r from-blue-600 to-indigo-500 text-white px-4 py-3 shadow">
         <h3 className="font-semibold text-sm">Prescripto 🤖 Chatbot</h3>
         <button onClick={onClose}>
-          <FiX className="text-lg hover:text-red-300" />
+          <FiX className="text-lg hover:text-red-300 transition" />
         </button>
       </div>
 
-      {/* Message Area */}
-      <div className="flex-1 p-4 overflow-y-auto space-y-2 bg-gray-50">
+      {/* Message area */}
+      <div className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3">
         {messages.map((msg, idx) => (
-          <div
+          <motion.div
             key={idx}
-            className={`max-w-[80%] p-2 px-3 rounded-lg text-sm whitespace-pre-wrap ${
+            initial={{ opacity: 0, x: msg.sender === 'user' ? 20 : -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.3 }}
+            className={`max-w-[80%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap shadow ${
               msg.sender === 'user'
-                ? 'ml-auto bg-blue-100 text-right'
-                : 'mr-auto bg-white border text-gray-800'
+                ? 'ml-auto bg-blue-100 text-right text-gray-800'
+                : 'mr-auto bg-white text-gray-800 border'
             }`}
           >
             {msg.text}
-          </div>
+          </motion.div>
         ))}
         <div ref={bottomRef} />
       </div>
 
-      {/* Input Area */}
+      {/* Input */}
       <form onSubmit={handleSend} className="p-3 border-t bg-white flex gap-2">
         <input
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Та юу асуух вэ?"
-          className="flex-1 px-3 py-2 text-sm border rounded-full focus:outline-blue-500"
+          className="flex-1 px-4 py-2 text-sm border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400"
         />
         <button
           type="submit"
-          className="bg-blue-600 text-white px-4 py-2 text-sm rounded-full hover:bg-blue-700"
+          className="bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 text-sm rounded-full font-medium"
         >
           Илгээх
         </button>
       </form>
-    </div>
+    </motion.div>
   );
 };
 

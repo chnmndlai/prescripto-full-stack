@@ -6,51 +6,49 @@ import { useNavigate } from 'react-router-dom';
 
 const Login = () => {
   const [state, setState] = useState('Бүртгүүлэх');
-
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
 
   const navigate = useNavigate();
-  const { backendUrl, token, setToken } = useContext(AppContext);
+  const { backendUrl, token, setToken, setDToken } = useContext(AppContext);
 
   const onSubmitHandler = async (event) => {
     event.preventDefault();
 
     try {
+      let res;
       if (state === 'Бүртгүүлэх') {
-        const { data } = await axios.post(backendUrl + '/api/user/register', {
+        res = await axios.post(`${backendUrl}/api/user/register`, {
           name,
           email,
           password,
         });
 
-        if (data.success) {
-          localStorage.setItem('dToken', data.token);
-setDToken(data.token);
-
-
+        if (res.data.success) {
+          localStorage.setItem('dToken', res.data.token);
+          setDToken(res.data.token);
           toast.success('Амжилттай бүртгэгдлээ!');
         } else {
-          toast.error(data.message);
+          toast.error(res.data.message);
         }
       } else {
-        const { data } = await axios.post(backendUrl + '/api/user/login', {
+        res = await axios.post(`${backendUrl}/api/user/login`, {
           email,
           password,
         });
 
-        if (data.success) {
-          localStorage.setItem('token', data.token);
-          setToken(data.token);
+        if (res.data.success) {
+          localStorage.setItem('token', res.data.token);
+          setToken(res.data.token);
           toast.success('Амжилттай нэвтэрлээ!');
         } else {
-          toast.error(data.message);
+          toast.error(res.data.message);
         }
       }
     } catch (error) {
-      toast.error('Сервертэй холбогдож чадсангүй.');
-      console.error(error);
+      console.error('Серверийн алдаа:', error);
+      toast.error(error.response?.data?.message || 'Сервертэй холбогдож чадсангүй.');
     }
   };
 
