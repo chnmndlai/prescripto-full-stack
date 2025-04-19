@@ -1,91 +1,160 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { FiX } from 'react-icons/fi';
+import { FaPaperPlane } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 
 const Chatbot = ({ onClose }) => {
   const [messages, setMessages] = useState([
-    { sender: 'bot', text: '👋 Сайн байна уу! Би таны сэтгэлзүйн туслах chatbot байна. Юу мэдэхийг хүсэж байна вэ?' }
+    {
+      role: 'assistant',
+      content: '👋 Сайн байна уу! Prescripto chatbot-д тавтай морил!',
+      buttons: ['🧠 Тест бөглөх', '📚 Сургалт', '📞 Зөвлөгөө авах'],
+    },
   ]);
-  const [input, setInput] = useState('');
-  const bottomRef = useRef(null);
+  const [userInput, setUserInput] = useState('');
+  const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef(null);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (!input.trim()) return;
-
-    const userMessage = { sender: 'user', text: input };
-    setMessages((prev) => [...prev, userMessage]);
-
-    const botReply = getBotReply(input);
-    setTimeout(() => {
-      setMessages((prev) => [...prev, { sender: 'bot', text: botReply }]);
-    }, 600);
-
-    setInput('');
+  const baseSystemMessage = {
+    role: 'system',
+    content:
+      'Та бол сэтгэлзүйн тусламж үзүүлдэг chatbot бөгөөд хэрэглэгчдэд ойлгомжтой, найрсаг монгол хэлээр тусламж үзүүлнэ.',
   };
 
-  const getBotReply = (message) => {
-    const msg = message.toLowerCase();
-    if (msg.includes('сэтгэл')) return '🧠 Сэтгэл гутрал олон хүчин зүйлээс шалтгаалж болно. Та илүү дэлгэрэнгүй хуваалцаж болох уу?';
-    if (msg.includes('тест')) return '📋 Манай тест таны сэтгэлзүйн байдалд үнэлгээ өгнө. Та сонирхож байна уу?';
-    return '🤖 Таны асуултыг ойлголоо. Илүү дэлгэрэнгүй мэдээлэл өгвөл би туслахад бэлэн!';
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  useEffect(scrollToBottom, [messages]);
+
+  const sendMessage = async (text) => {
+    const newMessages = [...messages, { role: 'user', content: text }];
+    setMessages(newMessages);
+    setUserInput('');
+    setLoading(true);
+
+    // action navigation хийх
+    if (text === '🧠 Тест бөглөх') {
+      navigate('/quiz/diabetes');
+      return;
+    }
+    if (text === '📚 Сургалт') {
+      navigate('/training');
+      return;
+    }
+    if (text === '📞 Зөвлөгөө авах') {
+      navigate('/doctors'); // эсвэл шууд /appointment/:docId рүү navigate хийж болно
+      return;
+    }
+
+    try {
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
+        },
+        body: JSON.stringify({
+          model: 'openai/gpt-3.5-turbo',
+          messages: [baseSystemMessage, ...newMessages],
+        }),
+      });
+
+      const data = await res.json();
+      const reply = data.choices?.[0]?.message?.content || '🤖 Хариулт ирсэнгүй.';
+
+      setMessages([...newMessages, { role: 'assistant', content: reply }]);
+    } catch (err) {
+      console.error(err);
+      setMessages([
+        ...newMessages,
+        { role: 'assistant', content: '⚠️ Алдаа гарлаа. Дахин оролдоно уу.' },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSend = () => {
+    if (userInput.trim()) {
+      sendMessage(userInput);
+    }
+  };
+
+  const handleQuickReply = (text) => {
+    sendMessage(text);
   };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 60 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
-      className="w-[360px] h-[520px] bg-white rounded-2xl shadow-2xl border border-gray-200 fixed bottom-24 right-6 z-50 flex flex-col overflow-hidden"
+      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.3 }}
+      className="w-[360px] h-[500px] bg-white shadow-xl rounded-2xl flex flex-col border border-gray-200 overflow-hidden fixed bottom-24 right-6 z-50"
     >
       {/* Header */}
-      <div className="flex justify-between items-center bg-gradient-to-r from-blue-600 to-indigo-500 text-white px-4 py-3 shadow">
-        <h3 className="font-semibold text-sm">Prescripto 🤖 Chatbot</h3>
-        <button onClick={onClose}>
-          <FiX className="text-lg hover:text-red-300 transition" />
+      <div className="bg-indigo-500 text-white py-2 px-4 flex items-center justify-between">
+        <h2 className="font-semibold text-sm">Prescripto 🤖 Chatbot</h2>
+        <button onClick={onClose} className="text-white hover:text-red-300 font-bold text-lg">
+          ×
         </button>
       </div>
 
-      {/* Message area */}
-      <div className="flex-1 p-4 overflow-y-auto bg-gray-50 space-y-3">
+      {/* Messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-gray-50">
         {messages.map((msg, idx) => (
-          <motion.div
-            key={idx}
-            initial={{ opacity: 0, x: msg.sender === 'user' ? 20 : -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.3 }}
-            className={`max-w-[80%] px-4 py-2 rounded-2xl text-sm whitespace-pre-wrap shadow ${
-              msg.sender === 'user'
-                ? 'ml-auto bg-blue-100 text-right text-gray-800'
-                : 'mr-auto bg-white text-gray-800 border'
-            }`}
-          >
-            {msg.text}
-          </motion.div>
+          <div key={idx}>
+            <div
+              className={`text-sm px-4 py-2 max-w-[80%] rounded-xl whitespace-pre-wrap ${
+                msg.role === 'user'
+                  ? 'bg-blue-100 ml-auto text-right'
+                  : 'bg-white border ml-0 text-left'
+              }`}
+            >
+              {msg.content}
+            </div>
+
+            {/* Quick Action Buttons */}
+            {msg.buttons && (
+              <div className="mt-2 flex flex-col gap-2 w-[85%]">
+                {msg.buttons.map((btnText, i) => (
+                  <button
+                    key={i}
+                    onClick={() => handleQuickReply(btnText)}
+                    className="text-sm px-3 py-2 bg-gray-100 text-gray-800 rounded-md text-left border hover:bg-gray-200 transition"
+                  >
+                    {btnText}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         ))}
-        <div ref={bottomRef} />
+        {loading && (
+          <div className="text-xs text-gray-500 animate-pulse">🤖 Хариулт бичиж байна...</div>
+        )}
+        <div ref={chatEndRef} />
       </div>
 
       {/* Input */}
-      <form onSubmit={handleSend} className="p-3 border-t bg-white flex gap-2">
+      <div className="border-t px-3 py-2 bg-white flex items-center gap-2">
         <input
           type="text"
-          value={input}
-          onChange={(e) => setInput(e.target.value)}
+          className="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
           placeholder="Та юу асуух вэ?"
-          className="flex-1 px-4 py-2 text-sm border rounded-full focus:outline-none focus:ring-2 focus:ring-blue-400"
+          value={userInput}
+          onChange={(e) => setUserInput(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
         />
         <button
-          type="submit"
-          className="bg-blue-600 hover:bg-blue-700 transition text-white px-4 py-2 text-sm rounded-full font-medium"
+          onClick={handleSend}
+          disabled={loading}
+          className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm px-4 py-2 rounded-full"
         >
           Илгээх
         </button>
-      </form>
+      </div>
     </motion.div>
   );
 };
