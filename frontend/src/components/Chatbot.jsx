@@ -18,8 +18,12 @@ const Chatbot = ({ onClose }) => {
 
   const baseSystemMessage = {
     role: 'system',
-    content:
-      'Та бол сэтгэлзүйн тусламж үзүүлдэг chatbot бөгөөд хэрэглэгчдэд ойлгомжтой, найрсаг монгол хэлээр тусламж үзүүлнэ.',
+    content: `
+      You are a friendly and helpful AI chatbot that provides mental health support.
+      Detect the language of the user's input. If the input is in Mongolian, respond in clear, kind, and understandable Mongolian.
+      If the input is in English, respond in clear, kind, and understandable English.
+      Always respond in the same language the user uses.
+    `,
   };
 
   const scrollToBottom = () => {
@@ -34,7 +38,7 @@ const Chatbot = ({ onClose }) => {
     setUserInput('');
     setLoading(true);
 
-    // action navigation хийх
+    // Quick action navigation
     if (text === '🧠 Тест бөглөх') {
       navigate('/quiz/diabetes');
       return;
@@ -44,7 +48,7 @@ const Chatbot = ({ onClose }) => {
       return;
     }
     if (text === '📞 Зөвлөгөө авах') {
-      navigate('/doctors'); // эсвэл шууд /appointment/:docId рүү navigate хийж болно
+      navigate('/doctors');
       return;
     }
 
@@ -115,7 +119,7 @@ const Chatbot = ({ onClose }) => {
               {msg.content}
             </div>
 
-            {/* Quick Action Buttons */}
+            {/* Quick buttons */}
             {msg.buttons && (
               <div className="mt-2 flex flex-col gap-2 w-[85%]">
                 {msg.buttons.map((btnText, i) => (

@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
 import { Routes, Route } from 'react-router-dom';
-import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
 import Chatbot from './components/Chatbot';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 // Pages
+import Home from './pages/Home';
 import Doctors from './pages/Doctors';
 import Login from './pages/Login';
 import About from './pages/About';
@@ -22,17 +22,8 @@ import QuizList from './pages/QuizList';
 import QuizDetail from './pages/QuizDetail';
 import DiabetesQuiz from './pages/DiabetesQuiz';
 
-const Home = () => {
-  return (
-    <div>
-      <h1 className="text-2xl font-bold text-center mt-10">Prescripto Chatbot</h1>
-      <Chatbot />
-    </div>
-  );
-};
-
 const App = () => {
-  const [showChat, setShowChat] = useState(false); // Popup chatbot toggle
+  const [showChat, setShowChat] = useState(false);
 
   return (
     <div className='relative mx-4 sm:mx-[10%]'>
@@ -55,10 +46,10 @@ const App = () => {
         <Route path='/quiz' element={<QuizList />} />
         <Route path='/quiz/:id' element={<QuizDetail />} />
         <Route path='/quiz/diabetes' element={<DiabetesQuiz />} />
-        <Route path='/chatbot' element={<Chatbot />} /> {/* Standalone chatbot page */}
+        <Route path='/chatbot' element={<Chatbot />} />
       </Routes>
 
-      {/* Popup chatbot floating */}
+      {/* 🔹 Floating popup chatbot */}
       {showChat && (
         <div className="fixed bottom-20 right-6 z-50 shadow-lg">
           <Chatbot onClose={() => setShowChat(false)} />
