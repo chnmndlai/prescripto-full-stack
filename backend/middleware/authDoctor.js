@@ -4,16 +4,16 @@ const authDoctor = async (req, res, next) => {
   const token = req.headers.authorization?.split(' ')[1];
 
   if (!token) {
-    return res.json({ success: false, message: 'Not Authorized Login Again' });
+    return res.status(401).json({ success: false, message: 'Нэвтрэх шаардлагатай.' });
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    req.body.docId = decoded.id;
+    req.user = { id: decoded.id }; // 👈 Зөв онооно
     next();
   } catch (error) {
-    console.log(error);
-    res.json({ success: false, message: 'Invalid or Expired Token' });
+    console.error('authDoctor error:', error);
+    res.status(401).json({ success: false, message: 'Токен хүчингүй эсвэл хугацаа дууссан байна.' });
   }
 };
 

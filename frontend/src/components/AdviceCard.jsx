@@ -20,8 +20,7 @@ const AdviceCard = ({ _id, title, summary, image, doctorId }) => {
         {doctorId && (
           <div className="mt-2 text-xs text-gray-500">
             👨‍⚕️ <span className="font-medium">{doctorId.name}</span><br />
-            🎓 {doctorId.education}<br />
-            🧠 Туршлага: {doctorId.experience} жил
+            
           </div>
         )}
 

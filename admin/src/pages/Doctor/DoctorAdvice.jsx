@@ -12,13 +12,10 @@ const AddAdvice = () => {
   const [adviceList, setAdviceList] = useState([]);
   const navigate = useNavigate();
 
-  // 🎯 Шинээр нэмсэн зөвлөгөөнүүдийг дуудаж харуулах
   const fetchAdvice = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/advice`);
-      if (res.data.success) {
-        setAdviceList(res.data.advice);
-      }
+      if (res.data.success) setAdviceList(res.data.advice);
     } catch (err) {
       toast.error('Зөвлөгөөг ачааллаж чадсангүй');
     }
@@ -31,7 +28,7 @@ const AddAdvice = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title || !summary || !image) {
-      toast.error('Бүх талбарыг бөглөнө үү.');
+      toast.error('Гарчиг, тайлбар болон зургийг бүрэн бөглөнө үү.');
       return;
     }
 
@@ -53,27 +50,27 @@ const AddAdvice = () => {
       );
 
       if (res.data.success) {
-        toast.success('Зөвлөгөө нэмэгдлээ!');
+        toast.success('Зөвлөгөө амжилттай нэмэгдлээ!');
         setTitle('');
         setSummary('');
         setImage(null);
-        fetchAdvice(); // 🔄 Шинэ зөвлөгөө ачаална
+        fetchAdvice();
       } else {
         toast.error(res.data.message || 'Алдаа гарлаа');
       }
     } catch (err) {
-      toast.error('Сервертэй холбогдоход алдаа гарлаа');
+      console.error(err);
+      toast.error(err.response?.data?.message || 'Серверийн алдаа гарлаа');
     }
   };
 
-  // 🗑️ Зөвлөгөө устгах
   const handleDelete = async (id) => {
     if (!confirm('Та энэ зөвлөгөөг устгахдаа итгэлтэй байна уу?')) return;
     try {
       await axios.delete(`${import.meta.env.VITE_BACKEND_URL}/api/advice/${id}`, {
         headers: { Authorization: `Bearer ${dToken}` },
       });
-      toast.success('Зөвлөгөө устгагдлаа');
+      toast.success('Зөвлөгөө амжилттай устгагдлаа');
       fetchAdvice();
     } catch (err) {
       toast.error('Устгах үед алдаа гарлаа');
@@ -87,22 +84,22 @@ const AddAdvice = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           <input
             type="text"
-            placeholder="Зөвлөгөөний гарчиг"
-            className="w-full px-4 py-2 border rounded"
+            placeholder="Гарчиг"
+            className="w-full border rounded p-2"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
           <textarea
-            placeholder="Тайлбар бичих..."
-            className="w-full px-4 py-2 border rounded h-28 resize-none"
+            placeholder="Товч тайлбар"
+            className="w-full border rounded p-2 h-28 resize-none"
             value={summary}
             onChange={(e) => setSummary(e.target.value)}
-          ></textarea>
+          />
           <input
             type="file"
             accept="image/*"
-            className="w-full"
             onChange={(e) => setImage(e.target.files[0])}
+            className="w-full"
           />
           {image && (
             <img
@@ -113,28 +110,28 @@ const AddAdvice = () => {
           )}
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white font-semibold py-2 rounded hover:bg-blue-700"
+            className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
           >
-            Зөвлөгөө нэмэх
+            Нэмэх
           </button>
         </form>
       </div>
 
-      {/* ✅ Жагсаалт хэсэг */}
+      {/* Жагсаалт */}
       <div>
         <h3 className="text-xl font-semibold mb-4 text-gray-700">🗂 Миний зөвлөгөөнүүд</h3>
         <div className="grid md:grid-cols-2 gap-6">
           {adviceList.map((a) => (
-            <div key={a._id} className="bg-white p-4 rounded-lg shadow-md relative">
+            <div key={a._id} className="bg-white p-4 rounded-lg shadow-md">
               <img src={a.image} alt={a.title} className="w-full h-40 object-cover rounded" />
               <h4 className="text-lg font-semibold mt-2">{a.title}</h4>
               <p className="text-sm text-gray-600 mt-1 line-clamp-3">{a.summary}</p>
               <div className="flex gap-2 mt-3">
                 <button
-                  onClick={() => navigate(`/admin/edit-advice/${a._id}`)}
+                  onClick={() => navigate(`/advice/${a._id}`)}
                   className="text-blue-600 hover:underline"
                 >
-                  Засах
+                  Дэлгэрэнгүй
                 </button>
                 <button
                   onClick={() => handleDelete(a._id)}

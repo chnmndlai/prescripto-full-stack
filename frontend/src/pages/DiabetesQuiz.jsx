@@ -4,6 +4,7 @@ import axios from 'axios';
 const DiabetesQuiz = () => {
   const [answers, setAnswers] = useState({});
   const [result, setResult] = useState(null);
+  const [showResult, setShowResult] = useState(false); // ✨ Шинэ нэмэлт
 
   const handleChange = (e) => {
     setAnswers({
@@ -14,6 +15,12 @@ const DiabetesQuiz = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Бүх 8 асуултыг бөглөсөн эсэхийг шалгах
+    if (Object.keys(answers).length < 8) {
+      alert("Бүх асуултад хариулна уу!");
+      return;
+    }
 
     const totalScore = Object.values(answers).reduce((acc, val) => acc + val, 0);
 
@@ -30,6 +37,7 @@ const DiabetesQuiz = () => {
         : `🚨 Таны нийт оноо: ${totalScore}. Өндөр эрсдэлтэй! Та эмчид хандаарай.`;
 
     setResult(displayResult);
+    setShowResult(true); // ✨ Илгээсний дараа л харуулна
 
     try {
       await axios.post(`${import.meta.env.VITE_BACKEND_URL}/api/quiz-results`, {
@@ -46,73 +54,82 @@ const DiabetesQuiz = () => {
   return (
     <div className="p-5 max-w-3xl mx-auto">
       <h2 className="text-2xl font-bold mb-6 text-center">Чихрийн шижингийн эрсдэлийн үнэлгээ</h2>
+
       <form onSubmit={handleSubmit} className="space-y-6">
-
-        {/* Асуулт 1 */}
-        <div>
-          <p>1. Таны нас хэд вэ?</p>
-          <label><input type="radio" name="q1" value="0" onChange={handleChange} /> 40-с доош</label><br/>
-          <label><input type="radio" name="q1" value="1" onChange={handleChange} /> 40–49</label><br/>
-          <label><input type="radio" name="q1" value="2" onChange={handleChange} /> 50–59</label><br/>
-          <label><input type="radio" name="q1" value="3" onChange={handleChange} /> 60-аас дээш</label>
-        </div>
-
-        {/* Асуулт 2 */}
-        <div>
-          <p>2. Таны Биеийн жингийн индекс (BMI) хэд вэ?</p>
-          <label><input type="radio" name="q2" value="0" onChange={handleChange} /> &lt;25</label><br/>
-          <label><input type="radio" name="q2" value="1" onChange={handleChange} /> 25–30</label><br/>
-          <label><input type="radio" name="q2" value="2" onChange={handleChange} /> &gt;30</label>
-        </div>
-
-        {/* Асуулт 3 */}
-        <div>
-          <p>3. Та өдөр бүр дасгал хөдөлгөөн хийдэг үү?</p>
-          <label><input type="radio" name="q3" value="0" onChange={handleChange} /> Тийм</label><br/>
-          <label><input type="radio" name="q3" value="1" onChange={handleChange} /> Үгүй</label>
-        </div>
-
-        {/* Асуулт 4 */}
-        <div>
-          <p>4. Таны аав, ээж, ах дүүсээс хэн нэг нь чихрийн шижинтэй юу?</p>
-          <label><input type="radio" name="q4" value="0" onChange={handleChange} /> Үгүй</label><br/>
-          <label><input type="radio" name="q4" value="2" onChange={handleChange} /> Тийм</label>
-        </div>
-
-        {/* Асуулт 5 */}
-        <div>
-          <p>5. Таны бүсэлхийн тойрог хэд вэ?</p>
-          <label><input type="radio" name="q5" value="0" onChange={handleChange} /> Эрсдэлгүй</label><br/>
-          <label><input type="radio" name="q5" value="1" onChange={handleChange} /> Эрсдэлтэй</label>
-        </div>
-
-        {/* Асуулт 6 */}
-        <div>
-          <p>6. Таны цусны даралт өндөр үү?</p>
-          <label><input type="radio" name="q6" value="0" onChange={handleChange} /> Үгүй</label><br/>
-          <label><input type="radio" name="q6" value="1" onChange={handleChange} /> Тийм</label>
-        </div>
-
-        {/* Асуулт 7 */}
-        <div>
-          <p>7. Та чихрийн шижинтэй жирэмсэлж байсан уу?</p>
-          <label><input type="radio" name="q7" value="0" onChange={handleChange} /> Үгүй</label><br/>
-          <label><input type="radio" name="q7" value="1" onChange={handleChange} /> Тийм</label>
-        </div>
-
-        {/* Асуулт 8 */}
-        <div>
-          <p>8. Та чихрийн шижингийн урьдчилсан оноштой байсан уу?</p>
-          <label><input type="radio" name="q8" value="0" onChange={handleChange} /> Үгүй</label><br/>
-          <label><input type="radio" name="q8" value="2" onChange={handleChange} /> Тийм</label>
-        </div>
+        {/* Асуултууд */}
+        {[
+          {
+            question: "1. Таны нас хэд вэ?",
+            name: "q1",
+            options: ["40-с доош", "40–49", "50–59", "60-аас дээш"],
+            values: [0, 1, 2, 3],
+          },
+          {
+            question: "2. Таны Биеийн жингийн индекс (BMI) хэд вэ?",
+            name: "q2",
+            options: ["<25", "25–30", ">30"],
+            values: [0, 1, 2],
+          },
+          {
+            question: "3. Та өдөр бүр дасгал хөдөлгөөн хийдэг үү?",
+            name: "q3",
+            options: ["Тийм", "Үгүй"],
+            values: [0, 1],
+          },
+          {
+            question: "4. Таны аав, ээж, ах дүүсээс хэн нэг нь чихрийн шижинтэй юу?",
+            name: "q4",
+            options: ["Үгүй", "Тийм"],
+            values: [0, 2],
+          },
+          {
+            question: "5. Таны бүсэлхийн тойрог хэд вэ?",
+            name: "q5",
+            options: ["Эрсдэлгүй", "Эрсдэлтэй"],
+            values: [0, 1],
+          },
+          {
+            question: "6. Таны цусны даралт өндөр үү?",
+            name: "q6",
+            options: ["Үгүй", "Тийм"],
+            values: [0, 1],
+          },
+          {
+            question: "7. Та чихрийн шижинтэй жирэмсэлж байсан уу?",
+            name: "q7",
+            options: ["Үгүй", "Тийм"],
+            values: [0, 1],
+          },
+          {
+            question: "8. Та чихрийн шижингийн урьдчилсан оноштой байсан уу?",
+            name: "q8",
+            options: ["Үгүй", "Тийм"],
+            values: [0, 2],
+          },
+        ].map(({ question, name, options, values }, idx) => (
+          <div key={idx}>
+            <p>{question}</p>
+            {options.map((option, i) => (
+              <label key={i} className="block">
+                <input
+                  type="radio"
+                  name={name}
+                  value={values[i]}
+                  onChange={handleChange}
+                />{" "}
+                {option}
+              </label>
+            ))}
+          </div>
+        ))}
 
         <button type="submit" className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700">
           Илгээх
         </button>
       </form>
 
-      {result && (
+      {/* Илгээсний дараа үр дүнг харуулах */}
+      {showResult && result && (
         <div className="mt-6 p-4 border-l-4 border-blue-500 bg-blue-50 text-blue-800 rounded shadow">
           {result}
         </div>

@@ -66,17 +66,22 @@ const Appointment = () => {
       toast.warning('Нэвтрэх шаардлагатай');
       return navigate('/login');
     }
-
+  
+    if (!slotTime) {
+      toast.error('Та цаг сонгоно уу.');
+      return;
+    }
+  
     const date = docSlots[slotIndex][0].datetime;
     const slotDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
-
+  
     try {
       const { data } = await axios.post(
         `${backendUrl}/api/user/book-appointment`,
         { docId, slotDate, slotTime },
         { headers: { token } }
       );
-
+  
       if (data.success) {
         toast.success(data.message);
         getDoctosData();
@@ -89,7 +94,7 @@ const Appointment = () => {
       toast.error(error.message);
     }
   };
-
+  
   useEffect(() => {
     if (doctors.length > 0) fetchDocInfo();
   }, [doctors, docId]);

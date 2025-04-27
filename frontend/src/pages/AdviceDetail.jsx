@@ -1,4 +1,3 @@
-// AdviceDetail.jsx
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { FaStar } from 'react-icons/fa';
@@ -30,15 +29,20 @@ const AdviceDetail = () => {
   };
 
   if (error) return <p className="text-center text-red-500 py-20">{error}</p>;
-  if (!advice) return <p className="text-center py-20">Уншиж байна...</p>;
+
+  if (!advice) return (
+    <div className="flex justify-center items-center h-60">
+      <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+    </div>
+  );
 
   return (
     <div className="max-w-4xl mx-auto py-10 px-4">
       <img
-  src={advice.image}
-  alt={advice.title}
-  className="w-full h-64 object-cover rounded-xl mb-6"
-/>
+        src={advice.image}
+        alt={advice.title}
+        className="w-full h-64 object-cover rounded-xl mb-6"
+      />
 
       <h1 className="text-3xl font-bold text-gray-800 mb-4">{advice.title}</h1>
       <p className="text-gray-700 mb-6 whitespace-pre-line">{advice.summary}</p>
