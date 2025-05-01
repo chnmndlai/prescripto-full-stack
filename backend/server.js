@@ -13,7 +13,7 @@ import doctorRouter from "./routes/doctorRoute.js";
 import adminRouter from "./routes/adminRoute.js";
 import adviceRouter from "./routes/adviceRouter.js";
 import quizResultRouter from "./routes/quizResultRoute.js";
-
+import quizRouter from './routes/quizRoute.js';
 const app = express();
 const port = process.env.PORT || 4000;
 
@@ -23,7 +23,7 @@ const __dirname = path.dirname(__filename);
 
 // ✅ DB ба Cloudinary холбох
 connectDB();
-connectCloudinary();
+
 
 // ✅ Body Parser
 app.use(express.json());
@@ -55,7 +55,7 @@ app.use("/api/admin", adminRouter);
 app.use("/api/doctor", doctorRouter);
 app.use("/api/advice", adviceRouter);
 app.use("/api/quiz-results", quizResultRouter);
-
+app.use('/api/quiz', quizRouter);
 // ✅ Test route
 app.get("/", (req, res) => {
   res.send("✅ Prescripto API working!");

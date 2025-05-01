@@ -22,7 +22,8 @@ import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
 import DoctorAdvice from './pages/Doctor/DoctorAdvice';
 import DoctorQuizResults from './pages/Doctor/DoctorQuizResults';
-
+import AddAdvice from "./pages/Doctor/DoctorAdvice";
+import AddQuiz from './pages/Doctor/AddQuiz';
 const App = () => {
   const { dToken } = useContext(DoctorContext);
   const { aToken } = useContext(AdminContext);
@@ -60,6 +61,9 @@ const App = () => {
           <Route path='/doctor-profile' element={<DoctorProfile />} />
           <Route path='/doctor-advice' element={<DoctorAdvice />} />
           <Route path='/doctor/quiz-results' element={<DoctorQuizResults />} />
+          <Route path='/doctor-advice' element={<AddAdvice />} />
+          <Route path="/doctor/add-quiz" element={<AddQuiz />} />
+
         </Routes>
       </div>
     </div>

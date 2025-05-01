@@ -4,6 +4,7 @@ import { DoctorContext } from '../context/DoctorContext';
 import { AdminContext } from '../context/AdminContext';
 import { assets } from '../assets/assets';
 import adviseIcon from '../assets/advise.svg'; // ✅ advise.svg зургийг импортолсон
+import { MdLibraryAdd } from 'react-icons/md'; // ✅ Тест нэмэх икон
 
 const Sidebar = () => {
   const { dToken } = useContext(DoctorContext);
@@ -33,12 +34,19 @@ const Sidebar = () => {
             <SidebarLink to="/doctor-list" icon={assets.people_icon} label="Эмчийн жагсаалт" />
           </ul>
         )}
+
         {dToken && (
           <ul>
             <SidebarLink to="/doctor-dashboard" icon={assets.home_icon} label="Хяналтын самбар" />
             <SidebarLink to="/doctor-appointments" icon={assets.appointment_icon} label="Миний захиалгууд" />
             <SidebarLink to="/doctor-profile" icon={assets.people_icon} label="Профайл" />
-            <SidebarLink to="/doctor-advice" icon={adviseIcon} label="Зөвлөгөө" /> {/* advise.svg ашиглаж байна */}
+            <SidebarLink to="/doctor-advice" icon={adviseIcon} label="Зөвлөгөө" />
+            <li>
+              <NavLink to="/doctor/add-quiz" className={navLinkStyle}>
+                <MdLibraryAdd className="w-5 h-5" />
+                <p className="hidden md:block">Тест нэмэх</p>
+              </NavLink>
+            </li>
           </ul>
         )}
       </nav>

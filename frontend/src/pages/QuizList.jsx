@@ -1,58 +1,56 @@
-import React from 'react'
-import { Link } from 'react-router-dom'
-import quizDiabetes from '../assets/quiz-diabetes.png'
-import quizElderly from '../assets/quiz-elderly.png'
-import quizPostpartum from '../assets/quiz-postpartum.png'
-const quizzes = [
-  {
-    id: 'diabetes',
-    title: 'ЧИХРИЙН ШИЖИН ӨВЧНИЙ ЭРСДЭЛ ҮНЭЛЭХ АСУУМЖ',
-    description: 'Та 60 хан секунд зарцуулан өөрийн болон хайртай дотны хүмүүсийнхээ амьдралыг хамгаалаарай.',
-    date: '2022-05-27',
-    image: quizDiabetes,
-  },
-  {
-    id: 'elderly-depression',
-    title: 'НАСТНЫ СЭТГЭЛ ГУТРАЛ ИЛРҮҮЛЭХ СОРИЛ',
-    description: 'Настны сэтгэл гутралыг хурдавчилсан аргаар оношлоход зориулагдсан сорил.',
-    date: '2022-05-31',
-    image: quizElderly,
-  },
-  {
-    id: 'postpartum',
-    title: 'ТӨРСНИЙ ДАРААХ СЭТГЭЛ ГУТРАЛ ИЛРҮҮЛЭХ',
-    description: 'Эдинбургийн сорил нь жирэмсний болон төрсний дараах сэтгэл гутралын сорил юм.',
-    date: '2022-06-16',
-    image: quizPostpartum,
-  },
-]
+import React, { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const QuizList = () => {
+  const [quizzes, setQuizzes] = useState([]);
+
+  const fetchQuizzes = async () => {
+    try {
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/quiz/all`); // 🎯 серверээс бүх тестүүдийг авна
+      if (res.data.success) {
+        setQuizzes(res.data.quizzes);
+      }
+    } catch (err) {
+      toast.error('Сорилуудыг ачааллаж чадсангүй');
+      console.error(err);
+    }
+  };
+
+  useEffect(() => {
+    fetchQuizzes();
+  }, []);
+
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold mb-6">🧠 Сэтгэлзүйн сорилууд</h1>
-      <div className="grid md:grid-cols-3 gap-6">
+    <div className="p-6">
+      <h2 className="text-2xl font-bold text-center mb-6">🧠 Сэтгэлзүйн сорилууд</h2>
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {quizzes.map((quiz) => (
-          <div key={quiz.id} className="bg-white border rounded-lg shadow hover:shadow-lg transition">
-            <img src={quiz.image} alt={quiz.title} className="w-full h-48 object-cover rounded-t-lg" />
-            <div className="p-4">
-              <h2 className="font-bold text-lg">{quiz.title}</h2>
-              <p className="text-gray-600 text-sm mt-2">{quiz.description}</p>
-              <div className="flex justify-between items-center mt-4">
-                <Link
-                  to={`/quiz/${quiz.id}`}
-                  className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                >
-                  Бөглөх
-                </Link>
-                <span className="text-blue-500 text-sm">{quiz.date}</span>
-              </div>
+          <div key={quiz._id} className="bg-white rounded-lg shadow-md p-4">
+            <img
+              src={quiz.image}
+              alt={quiz.title}
+              className="w-full h-40 object-cover rounded"
+            />
+            <h3 className="text-lg font-bold mt-3">{quiz.title}</h3>
+            <p className="text-sm text-gray-600 mt-1">{quiz.description}</p>
+            <div className="flex items-center justify-between mt-4">
+              <Link
+                to={`/quiz/${quiz._id}`}
+                className="bg-green-600 text-white px-4 py-1 rounded hover:bg-green-700"
+              >
+                Бөглөх
+              </Link>
+              <span className="text-xs text-gray-400">
+                {new Date(quiz.createdAt).toISOString().split('T')[0]}
+              </span>
             </div>
           </div>
         ))}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default QuizList
+export default QuizList;

@@ -8,16 +8,19 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// Файлыг дискт түр хадгалах
+// Файлыг дискт түр хадгалах тохиргоо
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    console.log("📁 Файл хадгалах зам:", uploadDir);
     cb(null, uploadDir);
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
     const name = path.basename(file.originalname, ext);
     const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-    cb(null, `${name}-${uniqueSuffix}${ext}`);
+    const filename = `${name}-${uniqueSuffix}${ext}`;
+    console.log("📸 Файл нэр:", filename);
+    cb(null, filename);
   },
 });
 
@@ -27,7 +30,8 @@ const fileFilter = (req, file, cb) => {
   if (allowedTypes.includes(file.mimetype)) {
     cb(null, true);
   } else {
-    cb(new Error('Зөвхөн JPG, PNG зураг хүлээн авна.'), false);
+    console.warn("❌ Зурагны MIME төрөл буруу:", file.mimetype);
+    cb(new Error('⛔ Зөвхөн JPG, PNG зураг хүлээн авна.'), false);
   }
 };
 

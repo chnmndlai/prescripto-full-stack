@@ -12,10 +12,13 @@ const AddAdvice = () => {
   const [adviceList, setAdviceList] = useState([]);
   const navigate = useNavigate();
 
+  // ✅ Зөвхөн тухайн эмчийн зөвлөгөөг авах
   const fetchAdvice = async () => {
     try {
-      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/advice`);
-      if (res.data.success) setAdviceList(res.data.advice);
+      const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/advice/my-advices`, {
+        headers: { Authorization: `Bearer ${dToken}` },
+      });
+      if (res.data.success) setAdviceList(res.data.advices);
     } catch (err) {
       toast.error('Зөвлөгөөг ачааллаж чадсангүй');
     }
@@ -79,6 +82,7 @@ const AddAdvice = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Шинээр нэмэх хэсэг */}
       <div className="bg-white shadow-md rounded-xl p-6 mb-10">
         <h2 className="text-2xl font-bold text-blue-700 mb-6">🩺 Шинэ зөвлөгөө нэмэх</h2>
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -117,32 +121,36 @@ const AddAdvice = () => {
         </form>
       </div>
 
-      {/* Жагсаалт */}
+      {/* Зөвхөн тухайн эмчийн зөвлөгөөнүүд */}
       <div>
         <h3 className="text-xl font-semibold mb-4 text-gray-700">🗂 Миний зөвлөгөөнүүд</h3>
-        <div className="grid md:grid-cols-2 gap-6">
-          {adviceList.map((a) => (
-            <div key={a._id} className="bg-white p-4 rounded-lg shadow-md">
-              <img src={a.image} alt={a.title} className="w-full h-40 object-cover rounded" />
-              <h4 className="text-lg font-semibold mt-2">{a.title}</h4>
-              <p className="text-sm text-gray-600 mt-1 line-clamp-3">{a.summary}</p>
-              <div className="flex gap-2 mt-3">
-                <button
-                  onClick={() => navigate(`/advice/${a._id}`)}
-                  className="text-blue-600 hover:underline"
-                >
-                  Дэлгэрэнгүй
-                </button>
-                <button
-                  onClick={() => handleDelete(a._id)}
-                  className="text-red-500 hover:underline"
-                >
-                  Устгах
-                </button>
+        {adviceList.length === 0 ? (
+          <p className="text-gray-500">Одоогоор зөвлөгөө байхгүй байна.</p>
+        ) : (
+          <div className="grid md:grid-cols-2 gap-6">
+            {adviceList.map((a) => (
+              <div key={a._id} className="bg-white p-4 rounded-lg shadow-md">
+                <img src={a.image} alt={a.title} className="w-full h-40 object-cover rounded" />
+                <h4 className="text-lg font-semibold mt-2">{a.title}</h4>
+                <p className="text-sm text-gray-600 mt-1 line-clamp-3">{a.summary}</p>
+                <div className="flex gap-2 mt-3">
+                  <button
+                    onClick={() => navigate(`/advice/${a._id}`)}
+                    className="text-blue-600 hover:underline"
+                  >
+                    Дэлгэрэнгүй
+                  </button>
+                  <button
+                    onClick={() => handleDelete(a._id)}
+                    className="text-red-500 hover:underline"
+                  >
+                    Устгах
+                  </button>
+                </div>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

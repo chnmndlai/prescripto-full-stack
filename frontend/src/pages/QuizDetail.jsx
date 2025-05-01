@@ -1,95 +1,93 @@
-import React, { useState } from 'react'
-import { useParams } from 'react-router-dom'
-import axios from 'axios'
-
-const quizData = {
-  diabetes: {
-    title: 'Чихрийн шижин өвчний эрсдэлийг үнэлэх асуумж',
-    questions: [
-      'Таны гэр бүлд чихрийн шижин өвчтэй хүн байдаг уу?',
-      'Та сүүлийн үед хэт их шингэн уудаг болсон уу?',
-      'Та сүүлийн 1 жилд 5 кг-аас их жин хаясан уу?',
-    ],
-  },
-  postpartum: {
-    title: 'Төрсний дараах сэтгэл гутралыг илрүүлэх сорил',
-    questions: [
-      'Танд уйтгар гуниг, сэтгэлээр унах мэдрэмж төрж байна уу?',
-      'Хүүхдээ харж байхдаа өөрийгөө буруутгах мэдрэмж төрдөг үү?',
-      'Та хангалттай амарч чадахгүй байна уу?',
-    ],
-  },
-  'elderly-depression': {
-    title: 'Настны сэтгэл гутрал илрүүлэх сорил',
-    questions: [
-      'Та амьдралын утга учиргүй мэт санагдаж байна уу?',
-      'Та сэтгэл дундуур байдалтай олон өдөр өнгөрөөж байна уу?',
-      'Сүүлийн үед хов хоосон мэдрэмж давамгайлж байна уу?',
-    ],
-  },
-}
+import React, { useEffect, useState } from 'react';
+import { useParams } from 'react-router-dom';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
 const QuizDetail = () => {
-  const { id } = useParams()
-  const [answers, setAnswers] = useState({})
-  const [submitted, setSubmitted] = useState(false)
+  const { id } = useParams();
+  const [quiz, setQuiz] = useState(null);
+  const [answers, setAnswers] = useState({});
+  const [submitted, setSubmitted] = useState(false);
 
-  const quiz = quizData[id]
+  useEffect(() => {
+    const fetchQuiz = async () => {
+      try {
+        const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/quiz/${id}`);
+        if (res.data.success) {
+          setQuiz(res.data.quiz);
+        } else {
+          toast.error("Тест олдсонгүй");
+        }
+      } catch {
+        toast.error("Тест ачаалах үед алдаа гарлаа");
+      }
+    };
+    fetchQuiz();
+  }, [id]);
 
-  const handleChange = (index, value) => {
-    setAnswers({ ...answers, [index]: value })
-  }
+  const handleChange = (qIdx, value) => {
+    setAnswers({ ...answers, [qIdx]: value });
+  };
 
-  const handleSubmit = async () => {
-    try {
-      await axios.post('http://localhost:5000/api/quiz/submit', {
-        answers,
-        userId: 'USER_ID', // Хэрэглэгчийн context-оос авна
-        quizType: id,
-      })
-      setSubmitted(true)
-    } catch (err) {
-      console.error('Хадгалахад алдаа:', err)
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!quiz || Object.keys(answers).length !== quiz.questions?.length) {
+      return toast.error("Бүх асуултад хариулна уу!");
     }
-  }
 
-  if (!quiz) return <div>Тест олдсонгүй.</div>
-  if (submitted) return <div>Баярлалаа! Таны тест илгээгдлээ.</div>
+    const yesCount = Object.values(answers).filter((ans) => ans === 'yes').length;
+    toast.success(`Та нийт ${yesCount} удаа "Тийм" гэж хариулсан байна.`);
+    setSubmitted(true);
+  };
+
+  if (!quiz) return <div className="p-6">Тест ачаалж байна...</div>;
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <h1 className="text-xl font-bold mb-4">{quiz.title}</h1>
-      {quiz.questions.map((q, i) => (
-        <div key={i} className="mb-4">
-          <p>{q}</p>
-          <div className="flex gap-4 mt-1">
-            <label>
-              <input
-                type="radio"
-                name={`q${i}`}
-                onChange={() => handleChange(i, 'Тийм')}
-              />{' '}
-              Тийм
-            </label>
-            <label>
-              <input
-                type="radio"
-                name={`q${i}`}
-                onChange={() => handleChange(i, 'Үгүй')}
-              />{' '}
-              Үгүй
-            </label>
-          </div>
-        </div>
-      ))}
-      <button
-        onClick={handleSubmit}
-        className="bg-blue-600 text-white px-4 py-2 rounded mt-4"
-      >
-        Илгээх
-      </button>
-    </div>
-  )
-}
+      <img src={quiz.image} alt={quiz.title} className="w-full h-64 object-cover rounded mb-4" />
+      <h2 className="text-2xl font-bold mb-2">{quiz.title}</h2>
+      <p className="text-gray-700 mb-4">{quiz.description}</p>
 
-export default QuizDetail
+      {!submitted && quiz.questions && quiz.questions.length > 0 && (
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {quiz.questions.map((q, idx) => (
+            <div key={idx} className="border-b pb-4">
+              <p className="mb-2 font-medium">{idx + 1}. {q.question || q}</p>
+              <label className="mr-4">
+                <input
+                  type="radio"
+                  name={`q${idx}`}
+                  value="yes"
+                  checked={answers[idx] === 'yes'}
+                  onChange={() => handleChange(idx, 'yes')}
+                /> Тийм
+              </label>
+              <label>
+                <input
+                  type="radio"
+                  name={`q${idx}`}
+                  value="no"
+                  checked={answers[idx] === 'no'}
+                  onChange={() => handleChange(idx, 'no')}
+                /> Үгүй
+              </label>
+            </div>
+          ))}
+          <button
+            type="submit"
+            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+          >
+            Илгээх
+          </button>
+        </form>
+      )}
+
+      {/* Хэрвээ асуултууд байхгүй бол энэ текстийг харуулна */}
+      {quiz.questions && quiz.questions.length === 0 && (
+        <p className="text-red-500">⚠️ Асуугдах асуулт байхгүй байна.</p>
+      )}
+    </div>
+  );
+};
+
+export default QuizDetail;

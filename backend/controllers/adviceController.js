@@ -7,8 +7,8 @@ import mongoose from 'mongoose';
 export const addAdvice = async (req, res) => {
   try {
     const { title, summary } = req.body;
-    const doctorId = req.user?.id;
-    
+    const doctorId = req.doctorId || req.user?.id;
+
     if (!title || !summary || !req.file) {
       return res.status(400).json({ success: false, message: 'Гарчиг, тайлбар болон зураг шаардлагатай.' });
     }
@@ -39,7 +39,6 @@ export const addAdvice = async (req, res) => {
   }
 };
 
-
 // ✅ Бүх зөвлөгөө жагсаах
 export const getAdviceList = async (req, res) => {
   try {
@@ -56,7 +55,6 @@ export const getSingleAdvice = async (req, res) => {
   try {
     const { id } = req.params;
 
-    // ✅ ID формат шалгах
     if (!mongoose.Types.ObjectId.isValid(id)) {
       return res.status(400).json({ success: false, message: 'ID формат буруу байна.' });
     }
@@ -137,7 +135,7 @@ export const updateAdvice = async (req, res) => {
   }
 };
 
-// ✅ Бүх зөвлөгөөг авах (populate хийсэн)
+// ✅ Бүх зөвлөгөөг populate хийж авах
 export const getAllAdvice = async (req, res) => {
   try {
     const advice = await Advice.find().populate('doctorId', 'name email');
@@ -145,5 +143,21 @@ export const getAllAdvice = async (req, res) => {
   } catch (err) {
     console.error('💥 Бүх зөвлөгөө авах алдаа:', err.message);
     res.status(500).json({ success: false, message: 'Мэдээлэл авахад алдаа.', error: err.message });
+  }
+};
+
+// ✅ Эмч зөвхөн өөрийн зөвлөгөөг авах
+export const getDoctorAdvices = async (req, res) => {
+  try {
+    const doctorId = req.doctorId;
+
+    if (!doctorId) {
+      return res.status(400).json({ success: false, message: 'doctorId дутуу байна.' });
+    }
+
+    const advices = await Advice.find({ doctorId });
+    res.json({ success: true, advices });
+  } catch (error) {
+    res.status(500).json({ success: false, message: error.message });
   }
 };
