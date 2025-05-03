@@ -11,7 +11,7 @@ const quizSchema = new mongoose.Schema(
 
     // Товч тайлбар
     summary: {
-      type: String, // ⚠️ Frontend-д "summary" гэж нэрлэсэн тул ингэж үлдээнэ
+      type: String,
       required: true,
     },
 
@@ -28,16 +28,35 @@ const quizSchema = new mongoose.Schema(
       required: true,
     },
 
-    // Тестийн асуултууд
+    // 🧠 Тестийн асуултууд
     questions: [
       {
-        question: { type: String, required: true }, // асуулт
-        type: { type: String, default: 'yesno' },  // асуултын төрлүүд (yesno, multiple choice, гэх мэт)
+        question: {
+          type: String,
+          required: true,
+        },
+        type: {
+          type: String,
+          enum: ['radio', 'checkbox', 'yesno'],
+          default: 'radio',
+        },
+        options: [
+          {
+            label: {
+              type: String,
+              required: true,
+            },
+            value: {
+              type: mongoose.Schema.Types.Mixed, // string, number, boolean г.м
+              required: true,
+            },
+          },
+        ],
       },
     ],
   },
   {
-    timestamps: true, // createdAt, updatedAt автоматаар нэмэгдэнэ
+    timestamps: true, // createdAt, updatedAt автоматаар
   }
 );
 

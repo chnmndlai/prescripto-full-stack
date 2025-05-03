@@ -25,9 +25,11 @@ import DoctorAdvice from './pages/Doctor/DoctorAdvice';
 import DoctorQuizResults from './pages/Doctor/DoctorQuizResults';
 import AddAdvice from './pages/Doctor/DoctorAdvice';
 import AddQuiz from './pages/Doctor/AddQuiz';
-import QuizList from './pages/Doctor/QuizList'; // ✅ Алдаатай байсан хэсэг — заавал нэмэх
-import QuizDetail from './pages/Doctor/QuizDetail'; // 🆕
-import EditQuiz from './pages/Doctor/EditQuiz'; // ✅ Шинээр нэмэх import
+import QuizList from './pages/Doctor/QuizList';
+import QuizDetail from './pages/Doctor/QuizDetail';
+import EditQuiz from './pages/Doctor/EditQuiz';
+import TakeQuiz from './pages/TakeQuiz'; // ✅ Шинээр нэмэгдсэн бүрэлдэхүүн
+
 const App = () => {
   const { dToken } = useContext(DoctorContext);
   const { aToken } = useContext(AdminContext);
@@ -65,11 +67,13 @@ const App = () => {
           <Route path='/doctor-advice' element={<DoctorAdvice />} />
           <Route path='/doctor/add-advice' element={<AddAdvice />} />
           <Route path='/doctor/add-quiz' element={<AddQuiz />} />
-          <Route path='/doctor/quizzes' element={<QuizList />} /> {/* ✅ Миний тестүүд */}
+          <Route path='/doctor/quizzes' element={<QuizList />} />
           <Route path='/doctor/quiz/:id' element={<QuizDetail />} />
-          <Route path='/doctor/edit-quiz/:id' element={<EditQuiz />} /> // ✅ Route нэмэх
-
+          <Route path='/doctor/edit-quiz/:id' element={<EditQuiz />} />
           <Route path='/doctor/quiz-results' element={<DoctorQuizResults />} />
+
+          {/* ✅ Тест бөглөх хуудас — TakeQuiz */}
+          <Route path='/quiz/:id' element={<TakeQuiz />} />
         </Routes>
       </div>
     </div>
