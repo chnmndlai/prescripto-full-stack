@@ -5,7 +5,7 @@ import cloudinary from '../config/cloudinary.js';
 export const createQuiz = async (req, res) => {
   try {
     const { title, summary } = req.body;
-    const doctorId = req.userId;
+    const doctorId = req.userId || req.doctorId; // 🔁 аль ч талаас ирсэн ID-г хүлээн авах
 
     console.log("📥 Received form data:", req.body);
     console.log("📁 Uploaded file:", req.file);
@@ -13,7 +13,7 @@ export const createQuiz = async (req, res) => {
     if (!title || !summary || !req.file) {
       return res.status(400).json({
         success: false,
-        message: "Гарчиг, тайлбар болон зургийг оруулна уу."
+        message: "Гарчиг, тайлбар болон зургийг оруулна уу.",
       });
     }
 
@@ -21,9 +21,9 @@ export const createQuiz = async (req, res) => {
 
     const newQuiz = new QuizModel({
       title,
-      summary, // ✨ Модел дээр summary гэж нэрлэсэн байх ёстой
+      summary,
       image: uploadedImage.secure_url,
-      doctor: doctorId, // ✨ Модел дээр doctor гэж нэрлэсэн байх ёстой
+      doctor: doctorId,
     });
 
     await newQuiz.save();
@@ -45,7 +45,9 @@ export const createQuiz = async (req, res) => {
 // 🩺 Эмчийн оруулсан тестүүдийг авах
 export const getDoctorQuizzes = async (req, res) => {
   try {
-    const quizzes = await QuizModel.find({ doctor: req.userId });
+    const doctorId = req.userId || req.doctorId;
+    const quizzes = await QuizModel.find({ doctor: doctorId }).sort({ createdAt: -1 });
+
     return res.json({ success: true, quizzes });
   } catch (err) {
     console.error("❌ Тест авахад алдаа:", err);
@@ -72,7 +74,6 @@ export const deleteQuiz = async (req, res) => {
   }
 };
 
-
 // 📋 Бүх тестүүдийг авах (public list)
 export const getAllQuizzes = async (req, res) => {
   try {
@@ -87,10 +88,11 @@ export const getAllQuizzes = async (req, res) => {
     });
   }
 };
+
 // 📄 Тест ID-р авах
 export const getQuizById = async (req, res) => {
   try {
-    const quiz = await QuizModel.findById(req.params.id); // id-г params-аас авч байна
+    const quiz = await QuizModel.findById(req.params.id);
     if (!quiz) {
       return res.status(404).json({ success: false, message: "Тест олдсонгүй" });
     }

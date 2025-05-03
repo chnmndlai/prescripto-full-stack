@@ -20,12 +20,13 @@ const DoctorQuiz = () => {
     }
 
     const formData = new FormData();
-    formData.append('name', quizName);
-    formData.append('description', description);
-    formData.append('image', file); // 'file' → 'image'
+    formData.append('title', quizName); // 🟢 Зөв нэршил
+    formData.append('summary', description); // 🟢 Зөв нэршил
+    formData.append('image', file);
 
     try {
       setIsSubmitting(true);
+
       const response = await axios.post(`${backendUrl}/api/quiz/create`, formData, {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -43,7 +44,7 @@ const DoctorQuiz = () => {
       }
     } catch (err) {
       toast.error('Сервертэй холбогдож чадсангүй!');
-      console.log(err); // Тайлбар нэмэх
+      console.log('❌ Axios Error:', err);
     } finally {
       setIsSubmitting(false);
     }

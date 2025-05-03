@@ -3,8 +3,9 @@ import { NavLink } from 'react-router-dom';
 import { DoctorContext } from '../context/DoctorContext';
 import { AdminContext } from '../context/AdminContext';
 import { assets } from '../assets/assets';
-import adviseIcon from '../assets/advise.svg'; // ✅ advise.svg зургийг импортолсон
-import { MdLibraryAdd } from 'react-icons/md'; // ✅ Тест нэмэх икон
+import adviseIcon from '../assets/advise.svg';
+import { MdLibraryAdd } from 'react-icons/md';
+import { MdListAlt } from 'react-icons/md'; // ✨ Шинэ икон — тест жагсаалт
 
 const Sidebar = () => {
   const { dToken } = useContext(DoctorContext);
@@ -17,7 +18,11 @@ const Sidebar = () => {
   const SidebarLink = ({ to, icon, label }) => (
     <li>
       <NavLink to={to} className={navLinkStyle}>
-        <img className="w-5 h-5" src={icon} alt={label} />
+        {typeof icon === 'string' ? (
+          <img className="w-5 h-5" src={icon} alt={label} />
+        ) : (
+          <span className="text-xl">{icon}</span>
+        )}
         <p className="hidden md:block">{label}</p>
       </NavLink>
     </li>
@@ -41,12 +46,8 @@ const Sidebar = () => {
             <SidebarLink to="/doctor-appointments" icon={assets.appointment_icon} label="Миний захиалгууд" />
             <SidebarLink to="/doctor-profile" icon={assets.people_icon} label="Профайл" />
             <SidebarLink to="/doctor-advice" icon={adviseIcon} label="Зөвлөгөө" />
-            <li>
-              <NavLink to="/doctor/add-quiz" className={navLinkStyle}>
-                <MdLibraryAdd className="w-5 h-5" />
-                <p className="hidden md:block">Тест нэмэх</p>
-              </NavLink>
-            </li>
+            <SidebarLink to="/doctor/add-quiz" icon={<MdLibraryAdd />} label="Тест нэмэх" />
+            <SidebarLink to="/doctor/quizzes" icon={<MdListAlt />} label="Миний тестүүд" /> {/* 🆕 */}
           </ul>
         )}
       </nav>

@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { DoctorContext } from './context/DoctorContext';
 import { AdminContext } from './context/AdminContext';
-import { Route, Routes, Navigate } from 'react-router-dom'; // ⬅️ Navigate нэмэгдсэн
+import { Route, Routes, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -17,13 +17,17 @@ import AdviceList from './pages/Admin/AdviceList';
 import EditAdvice from './pages/Admin/EditAdvice';
 
 import Login from './pages/Login';
+
 import DoctorAppointments from './pages/Doctor/DoctorAppointments';
 import DoctorDashboard from './pages/Doctor/DoctorDashboard';
 import DoctorProfile from './pages/Doctor/DoctorProfile';
 import DoctorAdvice from './pages/Doctor/DoctorAdvice';
 import DoctorQuizResults from './pages/Doctor/DoctorQuizResults';
-import AddAdvice from "./pages/Doctor/DoctorAdvice";
+import AddAdvice from './pages/Doctor/DoctorAdvice';
 import AddQuiz from './pages/Doctor/AddQuiz';
+import QuizList from './pages/Doctor/QuizList'; // ✅ Алдаатай байсан хэсэг — заавал нэмэх
+import QuizDetail from './pages/Doctor/QuizDetail'; // 🆕
+import EditQuiz from './pages/Doctor/EditQuiz'; // ✅ Шинээр нэмэх import
 const App = () => {
   const { dToken } = useContext(DoctorContext);
   const { aToken } = useContext(AdminContext);
@@ -35,7 +39,6 @@ const App = () => {
       <div className='flex items-start'>
         <Sidebar />
         <Routes>
-          {/* Default route — depending on user role */}
           <Route
             path="/"
             element={
@@ -60,10 +63,13 @@ const App = () => {
           <Route path='/doctor-appointments' element={<DoctorAppointments />} />
           <Route path='/doctor-profile' element={<DoctorProfile />} />
           <Route path='/doctor-advice' element={<DoctorAdvice />} />
-          <Route path='/doctor/quiz-results' element={<DoctorQuizResults />} />
-          <Route path='/doctor-advice' element={<AddAdvice />} />
-          <Route path="/doctor/add-quiz" element={<AddQuiz />} />
+          <Route path='/doctor/add-advice' element={<AddAdvice />} />
+          <Route path='/doctor/add-quiz' element={<AddQuiz />} />
+          <Route path='/doctor/quizzes' element={<QuizList />} /> {/* ✅ Миний тестүүд */}
+          <Route path='/doctor/quiz/:id' element={<QuizDetail />} />
+          <Route path='/doctor/edit-quiz/:id' element={<EditQuiz />} /> // ✅ Route нэмэх
 
+          <Route path='/doctor/quiz-results' element={<DoctorQuizResults />} />
         </Routes>
       </div>
     </div>

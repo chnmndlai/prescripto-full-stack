@@ -46,7 +46,7 @@ const DoctorContextProvider = (props) => {
       });
 
       if (data.success) {
-        setProfileData(data.doctor); // ✅ Энд зөв data ашиглана
+        setProfileData(data.doctor);
       } else {
         toast.error(data.message || 'Профайл мэдээлэл авахад алдаа гарлаа');
       }
@@ -117,7 +117,8 @@ const DoctorContextProvider = (props) => {
   };
 
   const value = {
-    dToken, setDToken, backendUrl,
+    dToken, setDToken,
+    backendUrl,
     appointments, getAppointments,
     cancelAppointment,
     completeAppointment,
