@@ -1,72 +1,135 @@
-import React from 'react'
-import { useContext } from 'react'
-import { useEffect } from 'react'
+import React, { useContext, useEffect, useState } from 'react'
 import { DoctorContext } from '../../context/DoctorContext'
 import { assets } from '../../assets/assets'
 import { AppContext } from '../../context/AppContext'
+import axios from 'axios';
+import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+
+const COLORS = ['#8884d8', '#82ca9d', '#ffc658'];
 
 const DoctorDashboard = () => {
-
   const { dToken, dashData, getDashData, cancelAppointment, completeAppointment } = useContext(DoctorContext)
-  const { slotDateFormat, currency } = useContext(AppContext)
+  const { slotDateFormat, currency, backendUrl } = useContext(AppContext);
+  const [stats, setStats] = useState(null);
+  const [overview, setOverview] = useState(null);
 
   useEffect(() => {
-
     if (dToken) {
-      getDashData()
+      getDashData();
+      fetchStats();
+      fetchOverview();
     }
+  }, [dToken]);
 
-  }, [dToken])
+  const fetchStats = async () => {
+    const res = await axios.get(`${backendUrl}/api/quiz-result/stats`);
+    if (res.data.success) setStats(res.data);
+  };
+
+  const fetchOverview = async () => {
+    const res = await axios.get(`${backendUrl}/api/quiz-result/overview`);
+    if (res.data.success) setOverview(res.data.overview);
+  };
 
   return dashData && (
     <div className='m-5'>
 
-      <div className='flex flex-wrap gap-3'>
-        <div className='flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all'>
-          <img className='w-14' src={assets.earning_icon} alt="" />
+      {/* 📊 ТОЙМ КАРТУУД */}
+      <div className='flex flex-wrap gap-4'>
+        <div className='flex items-center gap-4 bg-white p-5 min-w-56 rounded-xl border border-gray-200 shadow hover:shadow-md hover:scale-[1.03] transition'>
+          <img className='w-12' src={assets.earning_icon} alt="Орлого" />
           <div>
-            <p className='text-xl font-semibold text-gray-600'>{currency} {dashData.earnings}</p>
-            <p className='text-gray-400'>Ордлого</p>
+            <p className='text-2xl font-semibold text-gray-700'>₮ {dashData.earnings}</p>
+            <p className='text-gray-500'>Орлого</p>
           </div>
         </div>
-        <div className='flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all'>
-          <img className='w-14' src={assets.appointments_icon} alt="" />
+        <div className='flex items-center gap-4 bg-white p-5 min-w-56 rounded-xl border border-gray-200 shadow hover:shadow-md hover:scale-[1.03] transition'>
+          <img className='w-12' src={assets.appointments_icon} alt="Захиалгууд" />
           <div>
-            <p className='text-xl font-semibold text-gray-600'>{dashData.appointments}</p>
-            <p className='text-gray-400'>Захиалгууд</p>
+            <p className='text-2xl font-semibold text-gray-700'>{dashData.appointments}</p>
+            <p className='text-gray-500'>Захиалгууд</p>
           </div>
         </div>
-        <div className='flex items-center gap-2 bg-white p-4 min-w-52 rounded border-2 border-gray-100 cursor-pointer hover:scale-105 transition-all'>
-          <img className='w-14' src={assets.patients_icon} alt="" />
+        <div className='flex items-center gap-4 bg-white p-5 min-w-56 rounded-xl border border-gray-200 shadow hover:shadow-md hover:scale-[1.03] transition'>
+          <img className='w-12' src={assets.patients_icon} alt="Өвчтөнүүд" />
           <div>
-            <p className='text-xl font-semibold text-gray-600'>{dashData.patients}</p>
-            <p className='text-gray-400'>Өвчтөнүүд</p></div>
+            <p className='text-2xl font-semibold text-gray-700'>{dashData.patients}</p>
+            <p className='text-gray-500'>Өвчтөнүүд</p>
+          </div>
         </div>
       </div>
 
-      <div className='bg-white'>
-        <div className='flex items-center gap-2.5 px-4 py-4 mt-10 rounded-t border'>
-          <img src={assets.list_icon} alt="" />
-          <p className='font-semibold'>Сүүлд хийсэн захиалгууд</p>
+      {/* 📈 Сүүлийн 7 хоногийн тест бөглөсөн хэрэглэгчдийн статистик */}
+      {stats && (
+        <div className='mt-10 bg-white p-5 rounded-lg shadow'>
+          <p className='text-lg font-semibold text-gray-800 mb-3'>📅 7 хоногийн тест бөглөлтийн статистик</p>
+          <ResponsiveContainer width='100%' height={300}>
+            <LineChart data={stats.weekly}>
+              <XAxis dataKey="_id" />
+              <YAxis />
+              <Tooltip />
+              <Line type="monotone" dataKey="count" stroke="#8884d8" name='Бөглөсөн хүн' />
+              <Line type="monotone" dataKey="avgScore" stroke="#82ca9d" name='Дундаж оноо' />
+            </LineChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* 🧠 Тестийн үр дүнгийн тойм */}
+      {overview && (
+        <div className='mt-10 bg-white p-5 rounded-lg shadow'>
+          <p className='text-lg font-semibold text-gray-800 mb-3'>🧾 Тестийн үр дүнгийн тойм</p>
+          <ul className='space-y-2'>
+            {overview.map((q, index) => (
+              <li key={index} className='text-gray-700'>
+                📌 <strong>{q._id.title}</strong> — {q.count} удаа бөглөгдсөн, дундаж оноо: {q.avgScore.toFixed(1)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* 🕓 СҮҮЛД ХИЙСЭН ЗАХИАЛГУУД */}
+      <div className='bg-white mt-10 rounded-lg border shadow-sm'>
+        <div className='flex items-center gap-3 px-6 py-4 bg-gray-50 rounded-t-lg border-b'>
+          <img src={assets.list_icon} alt="Жагсаалт" className="w-5 h-5" />
+          <p className='font-semibold text-gray-700'>Сүүлд хийсэн захиалгууд</p>
         </div>
 
-        <div className='pt-4 border border-t-0'>
+        <div className='p-4 space-y-2'>
           {dashData.latestAppointments.slice(0, 5).map((item, index) => (
-            <div className='flex items-center px-6 py-3 gap-3 hover:bg-gray-100' key={index}>
-              <img className='rounded-full w-10' src={item.userData.image} alt="" />
-              <div className='flex-1 text-sm'>
-                <p className='text-gray-800 font-medium'>{item.userData.name}</p>
-                <p className='text-gray-600 '>Захиалга хийх өдөр: {slotDateFormat(item.slotDate)}</p>
+            <div key={index} className='flex items-center justify-between gap-4 px-4 py-3 rounded-md bg-gray-50 hover:bg-gray-100 transition'>
+              <div className='flex items-center gap-3'>
+                <img className='rounded-full w-10 h-10 object-cover border border-gray-300' src={item.userData.image} alt="Өвчтөн" />
+                <div>
+                  <p className='font-medium text-gray-800'>{item.userData.name}</p>
+                  <p className='text-sm text-gray-500'>Захиалга хийх өдөр: {slotDateFormat(item.slotDate)}</p>
+                </div>
               </div>
-              {item.cancelled
-                ? <p className='text-red-400 text-xs font-medium'>Цуцлагдсан</p>
-                : item.isCompleted
-                  ? <p className='text-green-500 text-xs font-medium'>Дууссан</p>
-                  : <div className='flex'>
-                    <img onClick={() => cancelAppointment(item._id)} className='w-10 cursor-pointer' src={assets.cancel_icon} alt="" />
-                    <img onClick={() => completeAppointment(item._id)} className='w-10 cursor-pointer' src={assets.tick_icon} alt="" />
+              <div>
+                {item.cancelled ? (
+                  <p className='text-red-500 text-sm font-medium'>❌ Цуцлагдсан</p>
+                ) : item.isCompleted ? (
+                  <p className='text-green-500 text-sm font-medium'>✔ Дууссан</p>
+                ) : (
+                  <div className='flex items-center gap-2'>
+                    <img
+                      onClick={() => cancelAppointment(item._id)}
+                      className='w-8 h-8 cursor-pointer hover:scale-105 transition'
+                      src={assets.cancel_icon}
+                      alt="Цуцлах"
+                      title="Захиалгыг цуцлах"
+                    />
+                    <img
+                      onClick={() => completeAppointment(item._id)}
+                      className='w-8 h-8 cursor-pointer hover:scale-105 transition'
+                      src={assets.tick_icon}
+                      alt="Дуусгах"
+                      title="Захиалгыг дуусгах"
+                    />
                   </div>
-              }
+                )}
+              </div>
             </div>
           ))}
         </div>

@@ -56,20 +56,16 @@ const TakeQuiz = () => {
     setIsSubmitting(true);
 
     try {
-      const totalScore = Object.values(answers).reduce((acc, answer) => {
-        if (Array.isArray(answer)) {
-          return acc + answer.reduce((a, b) => a + (b?.value || 0), 0);
-        }
-        return acc + (answer?.value || 0);
-      }, 0);
+      const payload = {
+        quizId: quiz._id,
+        userId: localStorage.getItem("userId"),
+        answers: Object.values(answers)
+      };
 
-      let level = '';
-      if (totalScore <= 5) level = 'Эрсдэл бага';
-      else if (totalScore <= 10) level = 'Дунд эрсдэл';
-      else level = 'Өндөр эрсдэл';
-
-      toast.success(`Та нийт ${totalScore} оноо авч, "${level}" түвшинд байна.`);
-
+      const res = await axios.post(`${backendUrl}/api/quiz-result`, payload);
+      if (res.data.success) {
+        toast.success(`Та нийт ${res.data.result.score} оноо авч, "${res.data.result.level}" түвшинд байна.`);
+      }
     } catch {
       toast.error('Үнэлгээ тооцоолоход алдаа гарлаа');
     } finally {
@@ -82,17 +78,9 @@ const TakeQuiz = () => {
   return (
     <div className="p-6 max-w-3xl mx-auto">
       <h2 className="text-2xl font-bold mb-2 text-blue-700">{quiz.title}</h2>
-
-      {/* Зураг бүтнээрээ */}
-      <img 
-        src={quiz.image} 
-        alt="quiz" 
-        className="w-full max-h-96 object-contain rounded-xl border bg-white shadow mb-4"
-      />
-
+      <img src={quiz.image} alt="quiz" className="w-full max-h-96 object-contain rounded-xl border bg-white shadow mb-4" />
       <p className="text-gray-600 mb-4">{quiz.summary}</p>
 
-      {/* 🩺 Эмчийн нэр, мэргэжил */}
       {quiz.doctor && (
         <div className="text-sm text-gray-500 mb-6">
           👨‍⚕️ <span className="font-semibold">{quiz.doctor.name}</span>
@@ -107,9 +95,7 @@ const TakeQuiz = () => {
           const isCheckbox = q.type === 'checkbox';
           return (
             <div key={index} className="border p-4 rounded shadow-sm">
-              <p className="font-semibold mb-2">
-                {index + 1}. {q.question}
-              </p>
+              <p className="font-semibold mb-2">{index + 1}. {q.question}</p>
               <div className="flex flex-col gap-2">
                 {q.options.map((option, optIdx) => (
                   <label key={optIdx} className="flex items-center gap-2">

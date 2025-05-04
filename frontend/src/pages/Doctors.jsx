@@ -15,7 +15,6 @@ const Doctors = () => {
     if (!doctors || doctors.length === 0) return;
 
     const decodedSpeciality = decodeURIComponent(speciality || '').toLowerCase().trim();
-
     let filtered = doctors;
 
     if (speciality && decodedSpeciality !== 'all doctors') {
@@ -26,7 +25,8 @@ const Doctors = () => {
 
     if (searchText.trim()) {
       filtered = filtered.filter(doc =>
-        doc.name.toLowerCase().includes(searchText.trim().toLowerCase())
+        doc.name.toLowerCase().includes(searchText.trim().toLowerCase()) ||
+        doc.speciality.toLowerCase().includes(searchText.trim().toLowerCase())
       );
     }
 
@@ -39,7 +39,7 @@ const Doctors = () => {
     "Хүүхдийн сэтгэл зүйч",
     "Зан үйл судлаач",
     "Сэтгэл засалч / зөвлөх",
-    "Гэр бүл, хосын сэтгэл зүйч "
+    "Гэр бүл, хосын сэтгэл зүйч"
   ];
 
   return (
@@ -47,25 +47,17 @@ const Doctors = () => {
       <p className="text-gray-600 text-center">Эмчийн мэргэжлээр шүүн үзэх</p>
 
       <div className="flex flex-col sm:flex-row items-start gap-5 mt-5">
-        {/* Mobile Filter Button */}
         <button
           onClick={() => setShowFilter(!showFilter)}
-          className={`py-1 px-3 border rounded text-sm transition-all sm:hidden ${
-            showFilter ? 'bg-primary text-white' : ''
-          }`}
+          className={`py-1 px-3 border rounded text-sm transition-all sm:hidden ${showFilter ? 'bg-primary text-white' : ''}`}
         >
           Шүүлтүүр
         </button>
 
-        {/* Filters */}
-        <div className={`flex-col gap-4 text-sm text-gray-600 ${showFilter ? 'flex' : 'hidden sm:flex'}`}>
+        <div className={`sticky top-24 flex-col gap-4 text-sm text-gray-600 ${showFilter ? 'flex' : 'hidden sm:flex'}`}>
           <p
             onClick={() => navigate('/doctors/all doctors')}
-            className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${
-              !speciality || decodeURIComponent(speciality).toLowerCase() === 'all doctors'
-                ? 'bg-[#E2E5FF] text-black'
-                : ''
-            }`}
+            className={`pl-3 py-1.5 pr-16 border border-gray-300 rounded cursor-pointer ${!speciality || decodeURIComponent(speciality).toLowerCase() === 'all doctors' ? 'bg-[#E2E5FF] text-black' : ''}`}
           >
             Бүх эмч нар
           </p>
@@ -73,27 +65,23 @@ const Doctors = () => {
             <p
               key={index}
               onClick={() => navigate(`/doctors/${encodeURIComponent(spec)}`)}
-              className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${
-                decodeURIComponent(speciality).toLowerCase() === spec.toLowerCase() ? 'bg-[#E2E5FF] text-black' : ''
-              }`}
+              className={`pl-3 py-1.5 pr-16 border border-gray-300 rounded cursor-pointer ${decodeURIComponent(speciality).toLowerCase() === spec.toLowerCase() ? 'bg-[#E2E5FF] text-black' : ''}`}
             >
               {spec}
             </p>
           ))}
         </div>
 
-        {/* Search Input */}
         <div className='w-full sm:hidden mt-4'>
           <input
             type='text'
-            placeholder='Эмчийн нэрээр хайх'
+            placeholder='Эмчийн нэр эсвэл мэргэжлээр хайх'
             value={searchText}
             onChange={(e) => setSearchText(e.target.value)}
             className='w-full px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary'
           />
         </div>
 
-        {/* Doctors List */}
         <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 pt-5">
           {filterDoc.length > 0 ? (
             filterDoc.map((item, index) => (
@@ -101,28 +89,21 @@ const Doctors = () => {
                 key={index}
                 className="flex flex-col justify-between border border-gray-300 rounded-xl bg-white shadow-sm hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer h-full"
               >
-                <img
-                  className="w-full h-56 object-cover bg-blue-50"
-                  src={item.image}
-                  alt={item.name}
-                />
+                <img className="w-full h-56 object-cover bg-blue-50 rounded-t-xl" src={item.image} alt={item.name} />
                 <div className="flex flex-col justify-between p-4 text-center h-full">
-                  {/* 🟢 Статус */}
                   <div className="flex justify-center items-center gap-2 text-sm mb-1">
                     <span className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : 'bg-gray-400'}`}></span>
                     <span className={`${item.available ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
                       {item.available ? 'Чөлөөтэй' : 'Захиалгатай'}
                     </span>
                   </div>
-
-                  {/* 👤 Нэр ба мэргэжил */}
                   <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
-                  <p className="text-sm text-gray-500 mb-4">{item.speciality}</p>
-
-                  {/* 🔘 Цаг авах товч – ижил байрлал */}
+                  <p className="text-sm text-gray-500">{item.speciality}</p>
+                  <p className="text-xs text-gray-400">{item.experience} туршлагатай</p>
+                  <p className="text-xs text-yellow-500">⭐⭐⭐⭐☆</p>
                   <button
                     onClick={() => navigate(`/appointment/${item._id}`)}
-                    className="bg-primary text-white px-5 py-2 rounded-full text-sm hover:bg-indigo-700 transition mt-auto"
+                    className="bg-primary text-white px-5 py-2 rounded-full text-sm hover:bg-indigo-700 transition mt-4"
                   >
                     Цаг авах
                   </button>
@@ -130,9 +111,7 @@ const Doctors = () => {
               </div>
             ))
           ) : (
-            <p className="text-gray-500 col-span-full text-center">
-              Уучлаарай, тохирох эмч олдсонгүй.
-            </p>
+            <p className="text-gray-500 col-span-full text-center">Уучлаарай, тохирох эмч олдсонгүй.</p>
           )}
         </div>
       </div>

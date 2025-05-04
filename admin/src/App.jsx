@@ -28,7 +28,8 @@ import AddQuiz from './pages/Doctor/AddQuiz';
 import QuizList from './pages/Doctor/QuizList';
 import QuizDetail from './pages/Doctor/QuizDetail';
 import EditQuiz from './pages/Doctor/EditQuiz';
-import TakeQuiz from './pages/TakeQuiz'; // ✅ Шинээр нэмэгдсэн бүрэлдэхүүн
+import EditAdviceDoctor from './pages/Doctor/EditAdvice'; // ✅ Шинээр нэмлээ
+import TakeQuiz from './pages/TakeQuiz';
 
 const App = () => {
   const { dToken } = useContext(DoctorContext);
@@ -66,11 +67,13 @@ const App = () => {
           <Route path='/doctor-profile' element={<DoctorProfile />} />
           <Route path='/doctor-advice' element={<DoctorAdvice />} />
           <Route path='/doctor/add-advice' element={<AddAdvice />} />
+          <Route path='/doctor/edit-advice/:id' element={<EditAdviceDoctor />} /> {/* ✅ Шинэ зам */}
           <Route path='/doctor/add-quiz' element={<AddQuiz />} />
           <Route path='/doctor/quizzes' element={<QuizList />} />
           <Route path='/doctor/quiz/:id' element={<QuizDetail />} />
           <Route path='/doctor/edit-quiz/:id' element={<EditQuiz />} />
           <Route path='/doctor/quiz-results' element={<DoctorQuizResults />} />
+          
 
           {/* ✅ Тест бөглөх хуудас — TakeQuiz */}
           <Route path='/quiz/:id' element={<TakeQuiz />} />

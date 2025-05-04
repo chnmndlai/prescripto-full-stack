@@ -80,7 +80,8 @@ const AddAdvice = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-5xl mx-auto p-6">
+      {/* ✅ Шинэ зөвлөгөө оруулах */}
       <div className="bg-white shadow-md rounded-xl p-6 mb-10">
         <h2 className="text-2xl font-bold text-blue-700 mb-6">🩺 Шинэ зөвлөгөө нэмэх</h2>
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -107,7 +108,7 @@ const AddAdvice = () => {
             <img
               src={URL.createObjectURL(image)}
               alt="preview"
-              className="w-48 mt-2 rounded shadow"
+              className="w-full max-h-60 object-cover mt-2 rounded shadow"
             />
           )}
           <button
@@ -119,30 +120,41 @@ const AddAdvice = () => {
         </form>
       </div>
 
+      {/* ✅ Зөвлөгөөний жагсаалт */}
       <div>
-        <h3 className="text-xl font-semibold mb-4 text-gray-700">🗂 Миний зөвлөгөөнүүд</h3>
+        <h3 className="text-xl font-semibold mb-4 text-gray-700">📂 Миний зөвлөгөөнүүд</h3>
         {adviceList.length === 0 ? (
           <p className="text-gray-500">Одоогоор зөвлөгөө байхгүй байна.</p>
         ) : (
-          <div className="grid md:grid-cols-2 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {adviceList.map((a) => (
-              <div key={a._id} className="bg-white p-4 rounded-lg shadow-md">
-                <img src={a.image} alt={a.title} className="w-full h-40 object-cover rounded" />
-                <h4 className="text-lg font-semibold mt-2">{a.title}</h4>
-                <p className="text-sm text-gray-600 mt-1 line-clamp-3">{a.summary}</p>
-                <div className="flex gap-2 mt-3">
-                  <button
-                    onClick={() => navigate(`/advice/${a._id}`)}
-                    className="text-blue-600 hover:underline"
-                  >
-                    Дэлгэрэнгүй
-                  </button>
-                  <button
-                    onClick={() => handleDelete(a._id)}
-                    className="text-red-500 hover:underline"
-                  >
-                    Устгах
-                  </button>
+              <div key={a._id} className="bg-white rounded-xl shadow hover:shadow-lg transition">
+                <img src={a.image} alt={a.title} className="w-full h-48 object-cover rounded-t-xl" />
+                <div className="p-4">
+                  <h4 className="text-lg font-bold text-gray-800">{a.title}</h4>
+                  <p className="text-sm text-gray-600 mt-1 line-clamp-3">{a.summary}</p>
+                  <div className="flex justify-between mt-3 text-sm">
+                    <button
+                      onClick={() => navigate(`/advice/${a._id}`)}
+                      className="text-blue-600 hover:underline"
+                    >
+                      Дэлгэрэнгүй
+                    </button>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => navigate(`/doctor/edit-advice/${a._id}`)}
+                        className="text-green-600 hover:underline"
+                      >
+                        Засах
+                      </button>
+                      <button
+                        onClick={() => handleDelete(a._id)}
+                        className="text-red-500 hover:underline"
+                      >
+                        Устгах
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             ))}

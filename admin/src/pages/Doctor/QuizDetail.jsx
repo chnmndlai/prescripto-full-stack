@@ -32,13 +32,14 @@ const QuizDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      {/* 🖼 Зураг бүтнээрээ харагдах object-contain */}
+      {/* 🖼 Зураг бүтэн харагдах */}
       <img
         src={quiz.image}
         alt={quiz.title}
         className="w-full h-60 object-contain rounded-lg bg-white border shadow mb-4"
       />
 
+      {/* 🧠 Тестийн үндсэн мэдээлэл */}
       <h2 className="text-2xl font-bold text-gray-800">{quiz.title}</h2>
       <p className="text-gray-700 mt-2">{quiz.summary}</p>
 
@@ -49,6 +50,28 @@ const QuizDetail = () => {
           {quiz.doctor.speciality && (
             <span className="ml-2 text-gray-400">| {quiz.doctor.speciality}</span>
           )}
+        </div>
+      )}
+
+      {/* ✅ Асуултууд харагдах хэсэг */}
+      {quiz.questions && quiz.questions.length > 0 && (
+        <div className="mt-8 space-y-6">
+          <h3 className="text-lg font-semibold text-gray-800">Тестийн асуултууд:</h3>
+          {quiz.questions.map((q, index) => (
+            <div key={index} className="border p-4 rounded-lg bg-gray-50">
+              <p className="font-medium">{index + 1}. {q.question}</p>
+              <div className="flex gap-4 mt-2 text-sm">
+                <label className="flex items-center gap-2">
+                  <input type="radio" name={`q-${index}`} value="yes" disabled />
+                  Тийм
+                </label>
+                <label className="flex items-center gap-2">
+                  <input type="radio" name={`q-${index}`} value="no" disabled />
+                  Үгүй
+                </label>
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>

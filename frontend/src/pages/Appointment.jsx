@@ -46,7 +46,6 @@ const Appointment = () => {
 
       while (currentDate < endTime) {
         const formattedTime = currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-
         const slotDate = `${currentDate.getDate()}_${currentDate.getMonth() + 1}_${currentDate.getFullYear()}`;
         const isSlotAvailable = !docInfo.slots_booked[slotDate]?.includes(formattedTime);
 
@@ -66,22 +65,22 @@ const Appointment = () => {
       toast.warning('Нэвтрэх шаардлагатай');
       return navigate('/login');
     }
-  
+
     if (!slotTime) {
       toast.error('Та цаг сонгоно уу.');
       return;
     }
-  
+
     const date = docSlots[slotIndex][0].datetime;
     const slotDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
-  
+
     try {
       const { data } = await axios.post(
         `${backendUrl}/api/user/book-appointment`,
         { docId, slotDate, slotTime },
         { headers: { token } }
       );
-  
+
       if (data.success) {
         toast.success(data.message);
         getDoctosData();
@@ -94,7 +93,7 @@ const Appointment = () => {
       toast.error(error.message);
     }
   };
-  
+
   useEffect(() => {
     if (doctors.length > 0) fetchDocInfo();
   }, [doctors, docId]);
@@ -105,67 +104,64 @@ const Appointment = () => {
 
   return docInfo ? (
     <div className="px-4">
-      {/* Эмчийн дэлгэрэнгүй */}
       <div className='flex flex-col sm:flex-row gap-4'>
         <div>
-          <img className='bg-primary w-full sm:max-w-72 rounded-lg' src={docInfo.image} alt={docInfo.name} />
+          <img className='bg-primary w-full sm:max-w-72 rounded-lg shadow-md' src={docInfo.image} alt={docInfo.name} />
         </div>
 
-        <div className='flex-1 border border-[#ADADAD] rounded-lg p-8 py-7 bg-white mx-2 sm:mx-0 mt-[-80px] sm:mt-0'>
-          <p className='flex items-center gap-2 text-3xl font-medium text-gray-700'>
+        <div className='flex-1 border border-gray-300 rounded-xl p-8 bg-white shadow-md'>
+          <p className='flex items-center gap-2 text-3xl font-semibold text-gray-800'>
             {docInfo.name} <img className='w-5' src={assets.verified_icon} alt="Баталгаажсан" />
           </p>
           <div className='flex items-center gap-2 mt-1 text-gray-600'>
             <p>{docInfo.degree} - {docInfo.speciality}</p>
-            <button className='py-0.5 px-2 border text-xs rounded-full'>{docInfo.experience}</button>
+            <button className='py-0.5 px-2 border text-xs rounded-full bg-gray-100'>{docInfo.experience}</button>
           </div>
 
-          <div>
-            <p className='flex items-center gap-1 text-sm font-medium text-[#262626] mt-3'>Тухай <img className='w-3' src={assets.info_icon} alt="Мэдээлэл" /></p>
-            <p className='text-sm text-gray-600 max-w-[700px] mt-1'>{docInfo.about}</p>
+          <div className='mt-3'>
+            <p className='flex items-center gap-1 text-sm font-medium text-gray-700'>Тухай <img className='w-3' src={assets.info_icon} alt="Мэдээлэл" /></p>
+            <p className='text-sm text-gray-600 mt-1'>{docInfo.about || 'Тайлбар оруулаагүй байна.'}</p>
           </div>
 
-          <p className='text-gray-600 font-medium mt-4'>Зөвлөгөөний үнэ: <span className='text-gray-800'>{currencySymbol}{docInfo.fees}</span></p>
+          <p className='text-gray-600 font-medium mt-4'>Зөвлөгөөний үнэ: <span className='text-gray-900 font-bold'>{currencySymbol}{docInfo.fees}</span></p>
         </div>
       </div>
 
-      {/* Цаг захиалга */}
-      <div className='sm:ml-72 sm:pl-4 mt-8 font-medium text-[#565656]'>
-        <p>Захиалгын боломжит цагууд</p>
-        <div className='flex gap-3 items-center w-full overflow-x-scroll mt-4'>
-          {docSlots.length > 0 && docSlots.map((item, index) => (
+      <div className='sm:ml-72 sm:pl-4 mt-8 font-medium text-gray-700'>
+        <p className='text-lg mb-3'>🕒 Захиалгын боломжит цагууд</p>
+        <div className='flex gap-3 overflow-x-auto'>
+          {docSlots.map((item, index) => (
             <div
               onClick={() => setSlotIndex(index)}
               key={index}
-              className={`text-center py-6 min-w-16 rounded-full cursor-pointer ${slotIndex === index ? 'bg-primary text-white' : 'border border-[#DDDDDD]'}`}
+              className={`text-center py-4 px-3 rounded-xl min-w-16 cursor-pointer transition ${slotIndex === index ? 'bg-primary text-white shadow' : 'bg-white border'}`}
             >
-              <p>{item[0] && daysOfWeek[item[0].datetime.getDay()]}</p>
-              <p>{item[0] && item[0].datetime.getDate()}</p>
+              <p className='text-sm'>{item[0] && daysOfWeek[item[0].datetime.getDay()]}</p>
+              <p className='text-xl font-semibold'>{item[0] && item[0].datetime.getDate()}</p>
             </div>
           ))}
         </div>
 
-        <div className='flex items-center gap-3 w-full overflow-x-scroll mt-4'>
-          {docSlots.length > 0 && docSlots[slotIndex].map((item, index) => (
-            <p
+        <div className='flex gap-3 flex-wrap mt-5'>
+          {docSlots[slotIndex]?.map((item, index) => (
+            <button
               onClick={() => setSlotTime(item.time)}
               key={index}
-              className={`text-sm font-light flex-shrink-0 px-5 py-2 rounded-full cursor-pointer ${item.time === slotTime ? 'bg-primary text-white' : 'text-[#949494] border border-[#B4B4B4]'}`}
+              className={`px-5 py-2 rounded-full text-sm transition ${item.time === slotTime ? 'bg-primary text-white shadow' : 'border text-gray-600 hover:bg-gray-100'}`}
             >
-              {item.time.toLowerCase()}
-            </p>
+              {item.time}
+            </button>
           ))}
         </div>
 
         <button
           onClick={bookAppointment}
-          className='bg-primary text-white text-sm font-light px-20 py-3 rounded-full my-6'
+          className='bg-primary text-white px-10 py-3 mt-6 rounded-full hover:bg-blue-700 transition shadow'
         >
           Цаг захиалах
         </button>
       </div>
 
-      {/* Холбоотой эмч нар */}
       <RelatedDoctors speciality={docInfo.speciality} docId={docId} />
     </div>
   ) : null;

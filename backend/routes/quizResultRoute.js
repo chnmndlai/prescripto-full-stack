@@ -1,9 +1,23 @@
 import express from 'express';
-import { saveQuizResult, getAllResults } from '../controllers/quizResultController.js';
+import {
+  saveQuizResult,
+  getAllResults,
+  getQuizStats,
+  getQuizOverview
+} from '../controllers/quizResultController.js';
 
 const router = express.Router();
 
+// ✅ Тест бөглөж хадгалах
 router.post('/', saveQuizResult);
-router.get('/', getAllResults); // эмч бүх үр дүнг харах
+
+// ✅ Бүх үр дүнг (эмч) харах
+router.get('/', getAllResults);
+
+// ✅ Сүүлийн 7 хоног ба сард бөглөсөн тестүүдийн тоо ба дундаж оноо
+router.get('/stats', getQuizStats);
+
+// ✅ Хамгийн их бөглөгдсөн тестүүдийн дундаж онооны тойм
+router.get('/overview', getQuizOverview);
 
 export default router;

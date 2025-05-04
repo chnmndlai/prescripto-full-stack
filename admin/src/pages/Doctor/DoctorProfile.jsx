@@ -47,25 +47,31 @@ const DoctorProfile = () => {
   return profileData && (
     <div className='m-5'>
       <div className='flex flex-col gap-4'>
+        {/* Эмчийн зураг */}
         <div>
-          <img className='bg-primary/80 w-full sm:max-w-64 rounded-lg' src={profileData.image} alt='Эмчийн зураг' />
-        </div>
+  <img
+    className='w-48 aspect-[3/4] object-cover rounded-xl shadow-md'
+    src={profileData.image}
+    alt='Эмчийн зураг'
+  />
+</div>
 
-        <div className='flex-1 border border-stone-100 rounded-lg p-8 py-7 bg-white'>
-          {/* Эмчийн үндсэн мэдээлэл */}
+
+        {/* Үндсэн мэдээлэл */}
+        <div className='flex-1 border border-gray-100 rounded-xl p-8 py-7 bg-white'>
           <p className='flex items-center gap-2 text-3xl font-semibold text-gray-800'>{profileData.name}</p>
           <div className='flex items-center gap-2 mt-1 text-gray-600'>
             <p>{profileData.degree} - {profileData.speciality}</p>
-            <span className='py-0.5 px-2 border text-xs rounded-full'>{profileData.experience}</span>
+            <span className='py-0.5 px-2 bg-blue-100 text-blue-700 text-xs rounded-full'>{profileData.experience} жил</span>
           </div>
 
-          {/* Эмчийн тухай */}
+          {/* Танилцуулга */}
           <div className='mt-4'>
             <p className='text-sm font-medium text-gray-700 mb-1'>Танилцуулга:</p>
             {
               isEdit
                 ? <textarea onChange={(e) => setProfileData(prev => ({ ...prev, about: e.target.value }))} className='w-full outline-primary p-2 border rounded' rows={6} value={profileData.about} />
-                : <p className='text-sm text-gray-600 max-w-[700px]'>{profileData.about}</p>
+                : <p className='text-sm text-gray-600 whitespace-pre-line max-w-[700px]'>{profileData.about}</p>
             }
           </div>
 
@@ -75,7 +81,7 @@ const DoctorProfile = () => {
             {
               isEdit
                 ? <input type='number' onChange={(e) => setProfileData(prev => ({ ...prev, fees: e.target.value }))} value={profileData.fees} className='border px-2 py-1 rounded' />
-                : <p className='text-gray-800'>{currency} {profileData.fees}</p>
+                : <p className='text-gray-800 font-semibold'>₮ {profileData.fees}</p>
             }
           </div>
 
@@ -103,20 +109,24 @@ const DoctorProfile = () => {
 
           {/* Боломжтой эсэх */}
           <div className='flex items-center gap-2 mt-4'>
-            <input
-              type='checkbox'
-              onChange={() => isEdit && setProfileData(prev => ({ ...prev, available: !prev.available }))}
-              checked={profileData.available}
-            />
-            <label className='text-sm text-gray-700'>Боломжтой</label>
+            {
+              isEdit
+                ? <input
+                    type='checkbox'
+                    onChange={() => isEdit && setProfileData(prev => ({ ...prev, available: !prev.available }))}
+                    checked={profileData.available}
+                  />
+                : <p className='text-green-600 text-sm font-medium'>✅ Боломжтой</p>
+            }
+            {isEdit && <label className='text-sm text-gray-700'>Боломжтой</label>}
           </div>
 
           {/* Товчлуурууд */}
           <div className='mt-6'>
             {
               isEdit
-                ? <button onClick={updateProfile} className='px-5 py-2 border border-primary text-sm rounded-full hover:bg-primary hover:text-white transition'>Хадгалах</button>
-                : <button onClick={() => setIsEdit(true)} className='px-5 py-2 border border-primary text-sm rounded-full hover:bg-primary hover:text-white transition'>Засах</button>
+                ? <button onClick={updateProfile} className='px-6 py-2 bg-primary text-white rounded-full hover:bg-primary/90 transition'>💾 Хадгалах</button>
+                : <button onClick={() => setIsEdit(true)} className='px-6 py-2 border border-primary text-primary rounded-full hover:bg-primary hover:text-white transition'>✏️ Засах</button>
             }
           </div>
 
@@ -127,10 +137,10 @@ const DoctorProfile = () => {
               profileData.reviews && profileData.reviews.length > 0 ? (
                 <div className='space-y-4'>
                   {profileData.reviews.map((review, index) => (
-                    <div key={index} className='border rounded p-4 bg-gray-50'>
+                    <div key={index} className='border rounded-lg p-4 bg-gray-50 shadow-sm'>
                       <p className='text-sm text-gray-800 font-medium'>{review.user}</p>
-                      <p className='text-sm text-gray-600'>{review.comment}</p>
-                      <p className='text-xs text-yellow-500'>⭐ {review.rating}/5</p>
+                      <p className='text-sm text-gray-600 mt-1'>{review.comment}</p>
+                      <p className='text-xs text-yellow-500 mt-1'>⭐ {review.rating}/5</p>
                     </div>
                   ))}
                 </div>

@@ -130,28 +130,36 @@ const DoctorQuiz = () => {
   return (
     <div className="p-6 w-full">
       <h2 className="text-2xl font-bold text-blue-700 mb-6">🧠 Шинэ сэтгэлзүйн тест нэмэх</h2>
-      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4 w-full max-w-2xl">
-        <input
-          type="text"
-          placeholder="Тестийн нэр"
-          value={quizName}
-          onChange={(e) => setQuizName(e.target.value)}
-          className="w-full p-3 border rounded"
-        />
-        <textarea
-          placeholder="Тайлбар"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={4}
-          className="w-full p-3 border rounded resize-none"
-        ></textarea>
+      <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-4 w-full max-w-3xl mx-auto">
+        <div>
+          <label className="block mb-1 font-medium text-gray-700">Тестийн нэр</label>
+          <input
+            type="text"
+            value={quizName}
+            onChange={(e) => setQuizName(e.target.value)}
+            className="w-full p-3 border rounded"
+          />
+        </div>
 
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => setFile(e.target.files[0])}
-          className="w-full"
-        />
+        <div>
+          <label className="block mb-1 font-medium text-gray-700">Тайлбар</label>
+          <textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={4}
+            className="w-full p-3 border rounded resize-none"
+          ></textarea>
+        </div>
+
+        <div>
+          <label className="block mb-1 font-medium text-gray-700">Зураг</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setFile(e.target.files[0])}
+            className="w-full"
+          />
+        </div>
 
         {file && (
           <img
@@ -163,9 +171,9 @@ const DoctorQuiz = () => {
 
         <div className="space-y-6">
           {questions.map((q, qIndex) => (
-            <div key={qIndex} className="bg-gray-100 p-4 rounded">
-              <div className="flex justify-between items-center">
-                <label className="font-semibold">Асуулт {qIndex + 1}</label>
+            <div key={qIndex} className="bg-gray-100 p-4 rounded shadow-sm">
+              <div className="flex justify-between items-center mb-2">
+                <label className="font-medium text-gray-700">Асуулт {qIndex + 1}</label>
                 {questions.length > 1 && (
                   <button type="button" onClick={() => handleRemoveQuestion(qIndex)} className="text-red-500 hover:underline">Устгах</button>
                 )}
@@ -174,13 +182,13 @@ const DoctorQuiz = () => {
                 type="text"
                 value={q.question}
                 onChange={(e) => handleQuestionChange(qIndex, e.target.value)}
-                className="w-full p-2 border rounded my-2"
+                className="w-full p-2 border rounded mb-3"
               />
 
               <select
                 value={q.type}
                 onChange={(e) => handleQuestionTypeChange(qIndex, e.target.value)}
-                className="mb-2 p-2 border rounded"
+                className="mb-3 p-2 border rounded"
               >
                 <option value="radio">Нэг сонголт (radio)</option>
                 <option value="checkbox">Олон сонголт (checkbox)</option>
@@ -222,7 +230,7 @@ const DoctorQuiz = () => {
           </button>
         </div>
 
-        <button type="submit" disabled={isSubmitting} className="bg-blue-600 text-white py-2 px-6 rounded hover:bg-blue-700 disabled:opacity-50">
+        <button type="submit" disabled={isSubmitting} className="w-full bg-blue-600 text-white py-3 rounded hover:bg-blue-700 disabled:opacity-50">
           {isSubmitting ? 'Хадгалж байна...' : 'Нэмэх'}
         </button>
       </form>

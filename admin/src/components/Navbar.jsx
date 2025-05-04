@@ -5,10 +5,8 @@ import { AdminContext } from '../context/AdminContext'
 import { useNavigate } from 'react-router-dom'
 
 const Navbar = () => {
-
   const { dToken, setDToken } = useContext(DoctorContext)
   const { aToken, setAToken } = useContext(AdminContext)
-
   const navigate = useNavigate()
 
   const logout = () => {
@@ -31,7 +29,7 @@ const Navbar = () => {
           onClick={() => navigate('/')} 
           src={assets.admin_logo} 
           alt="Лого" 
-          className="w-32 sm:w-40 cursor-pointer"
+          className="w-16 sm:w-24 cursor-pointer" // ⬅️ ЖИЖГЭРҮҮЛСЭН
         />
         <span className="text-sm sm:text-base px-3 py-1 border border-gray-400 text-gray-600 rounded-full">
           {aToken ? 'Админ' : 'Эмч'}
