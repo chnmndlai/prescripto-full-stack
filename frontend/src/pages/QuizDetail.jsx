@@ -8,6 +8,7 @@ const QuizDetail = () => {
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
+  const [result, setResult] = useState(null); // ✅ оноо, эрсдэл хадгалах
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -36,7 +37,12 @@ const QuizDetail = () => {
     }
 
     const yesCount = Object.values(answers).filter((ans) => ans === 'yes').length;
-    toast.success(`Та нийт ${yesCount} удаа "Тийм" гэж хариулсан байна.`);
+    let riskLevel = '';
+    if (yesCount <= 2) riskLevel = '🟢 Эрсдэл бага';
+    else if (yesCount <= 4) riskLevel = '🟠 Дунд эрсдэл';
+    else riskLevel = '🔴 Өндөр эрсдэл';
+
+    setResult({ yesCount, riskLevel });
     setSubmitted(true);
   };
 
@@ -44,12 +50,42 @@ const QuizDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <img src={quiz.image} alt={quiz.title} className="w-full h-64 object-cover rounded mb-4" />
-      <h2 className="text-2xl font-bold mb-2">{quiz.title}</h2>
-      <p className="text-gray-700 mb-4">{quiz.description}</p>
+      {/* 🖼 Зураг */}
+      <div className="flex justify-center mb-4">
+        <img
+          src={quiz.image}
+          alt={quiz.title}
+          className="rounded-xl shadow w-full max-w-md h-auto object-contain"
+        />
+      </div>
 
+      {/* 🧠 Гарчиг */}
+      <h2 className="text-2xl font-bold mb-1">{quiz.title}</h2>
+      <p className="text-gray-700 mb-2">{quiz.summary}</p>
+
+      {/* 👨‍⚕️ Эмчийн мэдээлэл */}
+      {quiz.doctor && (
+        <div className="text-sm text-gray-500 mb-4">
+          👨‍⚕️ <span className="font-semibold">{quiz.doctor.name}</span>
+          {quiz.doctor.speciality && (
+            <span className="ml-1">| {quiz.doctor.speciality}</span>
+          )}
+        </div>
+      )}
+
+      {/* ✅ Хариулсны дараах үнэлгээ */}
+      {submitted && result && (
+        <div className="mt-4 p-4 bg-gray-100 rounded text-center">
+          <p className="text-lg font-semibold text-green-700">
+            📝 Та {result.yesCount} удаа "Тийм" гэж хариулсан байна.
+          </p>
+          <p className="mt-2 text-base text-blue-700">{result.riskLevel}</p>
+        </div>
+      )}
+
+      {/* 📋 Асуултууд */}
       {!submitted && quiz.questions && quiz.questions.length > 0 && (
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5 mt-6">
           {quiz.questions.map((q, idx) => (
             <div key={idx} className="border-b pb-4">
               <p className="mb-2 font-medium">{idx + 1}. {q.question || q}</p>
@@ -82,9 +118,8 @@ const QuizDetail = () => {
         </form>
       )}
 
-      {/* Хэрвээ асуултууд байхгүй бол энэ текстийг харуулна */}
       {quiz.questions && quiz.questions.length === 0 && (
-        <p className="text-red-500">⚠️ Асуугдах асуулт байхгүй байна.</p>
+        <p className="text-red-500">⚠️ Асуулт алга байна.</p>
       )}
     </div>
   );

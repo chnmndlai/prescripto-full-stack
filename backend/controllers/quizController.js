@@ -77,10 +77,12 @@ export const deleteQuiz = async (req, res) => {
   }
 };
 
-// 📋 Бүх тестүүд авах
+// 📋 Бүх тестүүд авах (populate хийсэн хувилбар)
 export const getAllQuizzes = async (req, res) => {
   try {
-    const quizzes = await QuizModel.find().sort({ createdAt: -1 });
+    const quizzes = await QuizModel.find()
+      .sort({ createdAt: -1 })
+      .populate('doctor', 'name speciality'); // ✅ Энд эмчийн нэр, мэргэжлийг populate хийв
     return res.json({ success: true, quizzes });
   } catch (err) {
     console.error("❌ Бүх тест ачааллах үед алдаа:", err);
@@ -91,7 +93,7 @@ export const getAllQuizzes = async (req, res) => {
 // 📄 ID-р тест авах
 export const getQuizById = async (req, res) => {
   try {
-    const quiz = await QuizModel.findById(req.params.id);
+    const quiz = await QuizModel.findById(req.params.id).populate('doctor', 'name speciality');
     if (!quiz) {
       return res.status(404).json({ success: false, message: "Тест олдсонгүй" });
     }

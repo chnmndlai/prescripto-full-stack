@@ -32,9 +32,25 @@ const QuizDetail = () => {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <img src={quiz.image} alt={quiz.title} className="w-full h-60 object-cover rounded-lg shadow" />
-      <h2 className="text-2xl font-bold mt-4">{quiz.title}</h2>
+      {/* 🖼 Зураг бүтнээрээ харагдах object-contain */}
+      <img
+        src={quiz.image}
+        alt={quiz.title}
+        className="w-full h-60 object-contain rounded-lg bg-white border shadow mb-4"
+      />
+
+      <h2 className="text-2xl font-bold text-gray-800">{quiz.title}</h2>
       <p className="text-gray-700 mt-2">{quiz.summary}</p>
+
+      {/* 🩺 Эмчийн мэдээлэл */}
+      {quiz.doctor && (
+        <div className="mt-4 text-sm text-gray-600 border-t pt-3">
+          👨‍⚕️ <span className="font-semibold">{quiz.doctor.name}</span>
+          {quiz.doctor.speciality && (
+            <span className="ml-2 text-gray-400">| {quiz.doctor.speciality}</span>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -35,10 +35,10 @@ const adviceSchema = new mongoose.Schema(
       ref: 'Admin',
       default: null,
     },
-    doctorId: {
+    doctor: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'doctor',
-      required: true, // true болгох эсэхийг танд үлдээв
+      ref: 'Doctor',
+      required: true, // ✅ докторын нэр харагдуулахын тулд шаардлагатай
     },
     views: {
       type: Number,

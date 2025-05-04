@@ -22,17 +22,14 @@ const DoctorQuiz = () => {
   ]);
 
   const handleAddQuestion = () => {
-    setQuestions([
-      ...questions,
-      {
-        question: '',
-        type: 'radio',
-        options: [
-          { label: 'Тийм', value: 1 },
-          { label: 'Үгүй', value: 0 },
-        ],
-      }
-    ]);
+    setQuestions([...questions, {
+      question: '',
+      type: 'radio',
+      options: [
+        { label: 'Тийм', value: 1 },
+        { label: 'Үгүй', value: 0 },
+      ],
+    }]);
   };
 
   const handleRemoveQuestion = (index) => {
@@ -50,7 +47,6 @@ const DoctorQuiz = () => {
   const handleQuestionTypeChange = (index, type) => {
     const updated = [...questions];
     updated[index].type = type;
-
     if (type === 'radio') {
       updated[index].options = [
         { label: 'Тийм', value: 1 },
@@ -62,7 +58,6 @@ const DoctorQuiz = () => {
         { label: '', value: 0 },
       ];
     }
-
     setQuestions(updated);
   };
 
@@ -86,7 +81,6 @@ const DoctorQuiz = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (!quizName || !description || !file || questions.some(q => !q.question)) {
       toast.error('Бүх талбарыг бөглөнө үү!');
       return;
@@ -151,12 +145,21 @@ const DoctorQuiz = () => {
           rows={4}
           className="w-full p-3 border rounded resize-none"
         ></textarea>
+
         <input
           type="file"
           accept="image/*"
           onChange={(e) => setFile(e.target.files[0])}
           className="w-full"
         />
+
+        {file && (
+          <img
+            src={URL.createObjectURL(file)}
+            alt="preview"
+            className="w-full max-h-64 object-contain rounded border mb-4"
+          />
+        )}
 
         <div className="space-y-6">
           {questions.map((q, qIndex) => (
@@ -205,6 +208,7 @@ const DoctorQuiz = () => {
                   )}
                 </div>
               ))}
+
               {q.type === 'checkbox' && (
                 <button type="button" onClick={() => handleAddOption(qIndex)} className="text-sm text-blue-600 hover:underline">
                   ➕ Сонголт нэмэх

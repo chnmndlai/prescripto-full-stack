@@ -1,7 +1,7 @@
 import Advice from '../models/adviceModel.js';
 import fs from 'fs';
 import { v2 as cloudinary } from 'cloudinary';
-import mongoose from 'mongoose';
+import mongoose from 'mongoose'; // ❗ ҮНДСЭН ДУТАСАН ИМПОРТ
 
 // ✅ Зөвлөгөө нэмэх
 export const addAdvice = async (req, res) => {
@@ -10,43 +10,58 @@ export const addAdvice = async (req, res) => {
     const doctorId = req.doctorId || req.user?.id;
 
     if (!title || !summary || !req.file) {
-      return res.status(400).json({ success: false, message: 'Гарчиг, тайлбар болон зураг шаардлагатай.' });
+      return res.status(400).json({
+        success: false,
+        message: 'Гарчиг, тайлбар болон зураг шаардлагатай.',
+      });
     }
 
-    const localPath = req.file.path;
-
-    const result = await cloudinary.uploader.upload(localPath, {
+    const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'prescripto/advice',
     });
 
-    if (fs.existsSync(localPath)) {
-      fs.unlinkSync(localPath);
+    if (fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
     }
 
     const newAdvice = new Advice({
       title,
       summary,
       image: result.secure_url,
-      doctorId,
+      doctor: doctorId,
     });
 
     await newAdvice.save();
 
-    res.status(201).json({ success: true, message: 'Зөвлөгөө амжилттай нэмэгдлээ.', advice: newAdvice });
+    res.status(201).json({
+      success: true,
+      message: 'Зөвлөгөө амжилттай нэмэгдлээ.',
+      advice: newAdvice,
+    });
   } catch (err) {
     console.error('💥 Зөвлөгөө нэмэх алдаа:', err.message);
-    res.status(500).json({ success: false, message: 'Серверийн алдаа.', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Серверийн алдаа.',
+      error: err.message,
+    });
   }
 };
 
 // ✅ Бүх зөвлөгөө жагсаах
 export const getAdviceList = async (req, res) => {
   try {
-    const advice = await Advice.find().sort({ createdAt: -1 });
+    const advice = await Advice.find()
+      .sort({ createdAt: -1 })
+      .populate('doctor', 'name speciality');
     res.json({ success: true, advice });
   } catch (err) {
     console.error('💥 Зөвлөгөө жагсаах алдаа:', err.message);
-    res.status(500).json({ success: false, message: 'Мэдээлэл авахад алдаа.', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Мэдээлэл авахад алдаа.',
+      error: err.message,
+    });
   }
 };
 
@@ -56,19 +71,29 @@ export const getSingleAdvice = async (req, res) => {
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: 'ID формат буруу байна.' });
+      return res.status(400).json({
+        success: false,
+        message: 'ID формат буруу байна.',
+      });
     }
 
-    const advice = await Advice.findById(id).populate('doctorId', 'name email');
+    const advice = await Advice.findById(id).populate('doctor', 'name email');
 
     if (!advice) {
-      return res.status(404).json({ success: false, message: 'Зөвлөгөө олдсонгүй.' });
+      return res.status(404).json({
+        success: false,
+        message: 'Зөвлөгөө олдсонгүй.',
+      });
     }
 
     res.json({ success: true, advice });
   } catch (err) {
     console.error('💥 Нэг зөвлөгөө авах алдаа:', err.message);
-    res.status(500).json({ success: false, message: 'Серверийн алдаа.', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Серверийн алдаа.',
+      error: err.message,
+    });
   }
 };
 
@@ -78,19 +103,29 @@ export const deleteAdvice = async (req, res) => {
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: 'ID формат буруу байна.' });
+      return res.status(400).json({
+        success: false,
+        message: 'ID формат буруу байна.',
+      });
     }
 
     const deleted = await Advice.findByIdAndDelete(id);
 
     if (!deleted) {
-      return res.status(404).json({ success: false, message: 'Устгах зөвлөгөө олдсонгүй.' });
+      return res.status(404).json({
+        success: false,
+        message: 'Устгах зөвлөгөө олдсонгүй.',
+      });
     }
 
     res.json({ success: true, message: 'Зөвлөгөө амжилттай устгагдлаа.' });
   } catch (err) {
     console.error('💥 Зөвлөгөө устгах алдаа:', err.message);
-    res.status(500).json({ success: false, message: 'Серверийн алдаа.', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Серверийн алдаа.',
+      error: err.message,
+    });
   }
 };
 
@@ -100,14 +135,20 @@ export const updateAdvice = async (req, res) => {
     const { id } = req.params;
 
     if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ success: false, message: 'ID формат буруу байна.' });
+      return res.status(400).json({
+        success: false,
+        message: 'ID формат буруу байна.',
+      });
     }
 
     const { title, summary } = req.body;
     const existing = await Advice.findById(id);
 
     if (!existing) {
-      return res.status(404).json({ success: false, message: 'Зөвлөгөө олдсонгүй.' });
+      return res.status(404).json({
+        success: false,
+        message: 'Зөвлөгөө олдсонгүй.',
+      });
     }
 
     let image = existing.image;
@@ -131,18 +172,11 @@ export const updateAdvice = async (req, res) => {
     res.json({ success: true, message: 'Зөвлөгөө шинэчлэгдлээ.', advice: updatedAdvice });
   } catch (err) {
     console.error('💥 Зөвлөгөө шинэчлэх алдаа:', err.message);
-    res.status(500).json({ success: false, message: 'Серверийн алдаа.', error: err.message });
-  }
-};
-
-// ✅ Бүх зөвлөгөөг populate хийж авах
-export const getAllAdvice = async (req, res) => {
-  try {
-    const advice = await Advice.find().populate('doctorId', 'name email');
-    res.status(200).json({ success: true, advice });
-  } catch (err) {
-    console.error('💥 Бүх зөвлөгөө авах алдаа:', err.message);
-    res.status(500).json({ success: false, message: 'Мэдээлэл авахад алдаа.', error: err.message });
+    res.status(500).json({
+      success: false,
+      message: 'Серверийн алдаа.',
+      error: err.message,
+    });
   }
 };
 
@@ -152,12 +186,30 @@ export const getDoctorAdvices = async (req, res) => {
     const doctorId = req.doctorId;
 
     if (!doctorId) {
-      return res.status(400).json({ success: false, message: 'doctorId дутуу байна.' });
+      return res.status(400).json({
+        success: false,
+        message: 'doctorId дутуу байна.',
+      });
     }
 
-    const advices = await Advice.find({ doctorId });
+    const advices = await Advice.find({ doctor: doctorId }).populate('doctor', 'name speciality');
+
     res.json({ success: true, advices });
   } catch (error) {
     res.status(500).json({ success: false, message: error.message });
+  }
+};
+
+// ✅ populate ашигласан нөөц API (хэрэгтэй бол)
+export const getAllAdvice = async (req, res) => {
+  try {
+    const advice = await Advice.find().populate('doctor', 'name email');
+    res.status(200).json({ success: true, advice });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      message: 'Мэдээлэл авахад алдаа.',
+      error: err.message,
+    });
   }
 };

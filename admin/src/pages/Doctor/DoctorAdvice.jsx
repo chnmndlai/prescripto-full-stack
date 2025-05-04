@@ -12,7 +12,6 @@ const AddAdvice = () => {
   const [adviceList, setAdviceList] = useState([]);
   const navigate = useNavigate();
 
-  // ✅ Зөвхөн тухайн эмчийн зөвлөгөөг авах
   const fetchAdvice = async () => {
     try {
       const res = await axios.get(`${import.meta.env.VITE_BACKEND_URL}/api/advice/my-advices`, {
@@ -82,7 +81,6 @@ const AddAdvice = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
-      {/* Шинээр нэмэх хэсэг */}
       <div className="bg-white shadow-md rounded-xl p-6 mb-10">
         <h2 className="text-2xl font-bold text-blue-700 mb-6">🩺 Шинэ зөвлөгөө нэмэх</h2>
         <form onSubmit={handleSubmit} className="space-y-5">
@@ -121,7 +119,6 @@ const AddAdvice = () => {
         </form>
       </div>
 
-      {/* Зөвхөн тухайн эмчийн зөвлөгөөнүүд */}
       <div>
         <h3 className="text-xl font-semibold mb-4 text-gray-700">🗂 Миний зөвлөгөөнүүд</h3>
         {adviceList.length === 0 ? (

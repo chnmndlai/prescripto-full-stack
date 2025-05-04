@@ -99,31 +99,30 @@ const Doctors = () => {
             filterDoc.map((item, index) => (
               <div
                 key={index}
-                className="border border-gray-300 rounded-xl overflow-hidden bg-white shadow-lg hover:shadow-xl transition cursor-pointer"
+                className="flex flex-col justify-between border border-gray-300 rounded-xl bg-white shadow-sm hover:shadow-lg transition transform hover:-translate-y-1 cursor-pointer h-full"
               >
                 <img
                   className="w-full h-56 object-cover bg-blue-50"
                   src={item.image}
                   alt={item.name}
                 />
-                <div className="p-4 text-center">
-                  <div
-                    className={`flex items-center justify-center gap-2 text-sm ${
-                      item.available ? 'text-green-500' : 'text-gray-500'
-                    }`}
-                  >
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        item.available ? 'bg-green-500' : 'bg-gray-500'
-                      }`}
-                    ></span>
-                    <p>{item.available ? 'Чөлөөтэй' : 'Захиалгатай'}</p>
+                <div className="flex flex-col justify-between p-4 text-center h-full">
+                  {/* 🟢 Статус */}
+                  <div className="flex justify-center items-center gap-2 text-sm mb-1">
+                    <span className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : 'bg-gray-400'}`}></span>
+                    <span className={`${item.available ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
+                      {item.available ? 'Чөлөөтэй' : 'Захиалгатай'}
+                    </span>
                   </div>
-                  <p className="text-gray-900 text-lg font-medium">{item.name}</p>
-                  <p className="text-gray-600 text-sm">{item.speciality}</p>
+
+                  {/* 👤 Нэр ба мэргэжил */}
+                  <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
+                  <p className="text-sm text-gray-500 mb-4">{item.speciality}</p>
+
+                  {/* 🔘 Цаг авах товч – ижил байрлал */}
                   <button
                     onClick={() => navigate(`/appointment/${item._id}`)}
-                    className="mt-3 bg-primary text-white px-5 py-2 rounded-full text-sm hover:bg-blue-600 transition"
+                    className="bg-primary text-white px-5 py-2 rounded-full text-sm hover:bg-indigo-700 transition mt-auto"
                   >
                     Цаг авах
                   </button>

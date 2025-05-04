@@ -1,23 +1,29 @@
+/* ✅ Roboto фонтыг Google Fonts-оос зөв импортлов */
 @import url('https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100..900;1,100..900&display=swap');
 
+/* ✅ Tailwind CSS суурь */
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
+/* ✅ Фонт тохиргоо – бүх текстийг Roboto фонттой болгов */
 * {
-    font-family: Outfit;
+  font-family: 'Roboto', sans-serif;
 }
 
+/* ✅ .active hr блок болгож харуулна */
 .active hr {
-    @apply block
+  @apply block;
 }
 
-@media (max-width:740px) {
-    .active  p{
-       @apply text-white bg-primary
-    }
+/* ✅ Гар утасны дэлгэц дээр .active p нь цагаан фонт + primary өнгөтэй болно */
+@media (max-width: 740px) {
+  .active p {
+    @apply text-white bg-primary;
+  }
 }
 
+/* ✅ Scrollbar нуусан */
 ::-webkit-scrollbar {
-    @apply hidden
+  @apply hidden;
 }

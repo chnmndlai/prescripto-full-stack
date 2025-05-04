@@ -16,43 +16,46 @@ const TopDoctors = () => {
         Манай системд хамгийн их захиалга авсан, итгэлтэй эмч нар.
       </p>
 
-      <div className="w-full flex flex-wrap justify-center gap-6 pt-10">
+      {/* 💠 Картуудын хэсэг */}
+      <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 pt-10">
         {topDoctors.map((item) => (
           <div
             key={item._id}
             onClick={() => navigate(`/appointment/${item._id}`)}
-            className="bg-white border rounded-2xl p-5 w-full max-w-[240px] text-center shadow hover:shadow-lg transition-all duration-300 cursor-pointer"
+            className="bg-white rounded-xl shadow-md hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer p-6 flex flex-col items-center text-center h-full"
           >
             {/* 🟢 Зураг */}
             <img
               src={item.image}
               alt={item.name}
-              className="w-32 h-32 mx-auto rounded-full object-cover border-4 border-white shadow"
+              className="w-24 h-24 rounded-full border-4 border-white shadow object-cover"
             />
 
             {/* 👤 Нэр */}
             <h3 className="text-lg font-semibold mt-4">{item.name}</h3>
 
             {/* 🩺 Туршлага */}
-            <p className="text-sm text-blue-600">{item.experience || 5} жил ажилласан</p>
+            <p className="text-sm text-blue-600 mt-1">
+              {item.experience || 5} жил ажилласан
+            </p>
 
             {/* 🧠 Мэргэжил */}
-            <p className="text-sm text-gray-500 mt-1">{item.speciality}</p>
+            <p className="text-sm text-gray-500">{item.speciality}</p>
 
-            {/* ⭐ Үнэлгээ + Зөвлөгөө */}
-            <div className="flex justify-center items-center gap-2 mt-3 text-blue-600 font-medium text-sm">
+            {/* ⭐ Үнэлгээ + зөвлөгөө */}
+            <div className="flex items-center justify-center gap-1 mt-3 text-sm text-gray-700">
               <FaStar className="text-blue-500" />
-              <span>{item.rating || '4.5'}</span>
+              <span className="font-medium text-blue-600">{item.rating || '4.5'}</span>
               <span className="text-xs text-gray-500">• {item.totalAdvice || 150} зөвлөгөө өгсөн</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* 🔘 Бусад эмч нар харах */}
+      {/* 🔘 Бусад эмч нар харах товч */}
       <button
         onClick={() => navigate('/doctors')}
-        className="bg-blue-100 text-gray-700 px-10 py-2 rounded-full mt-10 hover:bg-blue-200 transition"
+        className="bg-blue-100 text-gray-700 px-10 py-2 rounded-full mt-10 hover:bg-blue-200 transition font-medium"
       >
         Бусад эмч нар харах
       </button>
