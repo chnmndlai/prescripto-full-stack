@@ -156,7 +156,7 @@ const bookAppointment = async (req, res) => {
 
 const cancelAppointment = async (req, res) => {
   try {
-    const { appointmentId } = req.body;
+    const { appointmentId, reason } = req.body;
     const userId = req.userId;
     const appointmentData = await appointmentModel.findById(appointmentId);
 
@@ -168,7 +168,10 @@ const cancelAppointment = async (req, res) => {
       return res.status(403).json({ success: false, message: 'Зөвшөөрөгдөөгүй үйлдэл.' });
     }
 
-    await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true });
+    await appointmentModel.findByIdAndUpdate(appointmentId, {
+      cancelled: true,
+      cancelReason: reason || ''
+    });
 
     const { docId, slotDate, slotTime } = appointmentData;
     const doctorData = await doctorModel.findById(docId);

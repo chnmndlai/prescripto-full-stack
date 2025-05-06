@@ -14,31 +14,48 @@ export const saveQuizResult = async (req, res) => {
     let totalScore = 0;
 
     quiz.questions.forEach((question, index) => {
-      const userAnswer = answers[index];
+      const userAnswer = answers.find((a) => a.index === index);
       if (!userAnswer) return;
 
       if (question.type === 'radio') {
-        const matched = question.options.find(opt => opt.label === userAnswer.label);
-        if (matched) totalScore += matched.value;
+        if (userAnswer.label === 'Тийм') totalScore += 1;
       }
 
       if (question.type === 'checkbox') {
-        userAnswer.forEach((selected) => {
-          const matched = question.options.find(opt => opt.label === selected.label);
-          if (matched) totalScore += matched.value;
+        userAnswer.label.forEach((label) => {
+          if (label === 'Тийм') totalScore += 1;
         });
       }
     });
 
-    let level = 'Бага';
-    if (totalScore >= 8) level = 'Дунд';
-    if (totalScore >= 15) level = 'Өндөр';
+    // ✅ Үнэлгээний түвшин
+    let level = 'Хэвийн сэтгэлзүйн байдал';
+    if (totalScore >= 3 && totalScore <= 5) level = 'Хөнгөн зэргийн сэтгэл гутралын шинжтэй';
+    if (totalScore >= 6 && totalScore <= 8) level = 'Дунд зэргийн сэтгэл гутрал';
+    if (totalScore >= 9) level = 'Хүнд зэргийн сэтгэл гутрал, эмчид хандах шаардлагатай';
+
+    // ✅ Санамсаргүй зөвлөгөө
+    const advices = [
+      "Чи ганцаараа биш. Хэн нэгэн үргэлж чамд санаа тавьж байгаа.",
+      "Чи юу мэдэрч байгаагаа мэдрэх эрхтэй. Чи хангалттай үнэ цэнэтэй хүн.",
+      "Бүх зүйл одоо хэцүү байж болох ч энэ үе өнгөрнө.",
+      "Амьдралд амралт авах үе хэрэгтэй. Чи амсхийж болно.",
+      "Алхам бүр чамайг урагшлуулж байгаа. Хэдий аажуу ч гэсэн.",
+      "Төгс байх албагүй. Чи өөрийнхөөрөө л сайхан.",
+      "Хүчтэй хүн уйлж чаддаг. Чамд сэтгэл бий гэдгийн шинж.",
+      "Чи өнгөрснийг биш, ирээдүйг өөрчилж чадна.",
+      "Өнөөдөр амархан биш байж болох ч чи өнгөрсөн бүхнийг давж гарсан хүн.",
+      "Надад итгэ, чи чадна. Чи аль хэдийн олон давааг давсан."
+    ];
+
+    const randomAdvice = advices[Math.floor(Math.random() * advices.length)];
 
     const result = new QuizResult({
       quizId,
       userId,
       score: totalScore,
       level,
+      advice: randomAdvice,
       createdAt: new Date(),
     });
 

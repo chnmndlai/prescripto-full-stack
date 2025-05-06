@@ -3,12 +3,26 @@ import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import { toast } from 'react-toastify';
 
+const calmingMessages = [
+  "Чи ганцаараа биш. Хэн нэгэн үргэлж чамд санаа тавьж байгаа.",
+  "Чи юу мэдэрч байгаагаа мэдрэх эрхтэй. Чи хангалттай үнэ цэнэтэй хүн.",
+  "Бүх зүйл одоо хэцүү байж болох ч энэ үе өнгөрнө.",
+  "Амьдралд амралт авах үе хэрэгтэй. Чи амсхийж болно.",
+  "Алхам бүр чамайг урагшлуулж байгаа. Хэдий аажуу ч гэсэн.",
+  "Төгс байх албагүй. Чи өөрийнхөөрөө л сайхан.",
+  "Хүчтэй хүн уйлж чаддаг. Чамд сэтгэл бий гэдгийн шинж.",
+  "Чи өнгөрснийг биш, ирээдүйг өөрчилж чадна.",
+  "Өнөөдөр амархан биш байж болох ч чи өнгөрсөн бүхнийг давж гарсан хүн.",
+  "Надад итгэ, чи чадна. Чи аль хэдийн олон давааг давсан."
+];
+
 const QuizDetail = () => {
   const { id } = useParams();
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
   const [result, setResult] = useState(null);
+  const [calmingText, setCalmingText] = useState('');
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -42,7 +56,12 @@ const QuizDetail = () => {
     else if (yesCount <= 4) riskLevel = '🟠 Дунд эрсдэл';
     else riskLevel = '🔴 Өндөр эрсдэл';
 
+    // Тайвшруулах үгсээс нэгийг санамсаргүй сонгох
+    const randomIndex = Math.floor(Math.random() * calmingMessages.length);
+    const selectedMessage = calmingMessages[randomIndex];
+
     setResult({ yesCount, riskLevel });
+    setCalmingText(selectedMessage);
     setSubmitted(true);
   };
 
@@ -75,23 +94,21 @@ const QuizDetail = () => {
 
       {/* ✅ Үр дүн */}
       {submitted && result && (
-        <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-5 text-center shadow">
-          <p className="text-lg font-semibold text-green-700">
-            📝 Та {result.yesCount} удаа "Тийм" гэж хариулсан байна.
-          </p>
-          <p className="mt-1 text-base text-blue-700 font-medium">{result.riskLevel}</p>
+  <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-5 text-center shadow">
+    <p className="text-lg font-semibold text-green-700">
+      📄 Та {result.yesCount} удаа "Тийм" гэж хариулсан байна.
+    </p>
+    <p className="mt-1 text-base text-blue-700 font-medium">{result.riskLevel}</p>
 
-          <div className="mt-5 bg-white border rounded-lg p-4 text-left text-sm text-gray-700 shadow-sm">
-            <h4 className="font-semibold text-gray-800 mb-2">🧘 Тайвшруулах зөвлөгөө</h4>
-            <ul className="list-disc list-inside space-y-1">
-              <li>Та ганцаараа биш — энэ бол нийтлэг нөхцөл.</li>
-              <li>Өөрийгөө хайрлах цаг гарга.</li>
-              <li>Өдөр бүр гүн амьсгал авч бясалгал хийх.</li>
-              <li>Хэрэв шаардлагатай бол эмчид хандана уу.</li>
-            </ul>
-          </div>
-        </div>
-      )}
+    {/* ✅ Тайвшруулах үг — ногоон дулаан дизайн */}
+    <div className="mt-5 bg-green-100 border border-green-300 rounded-xl p-6 shadow-sm">
+      <p className="text-xl font-semibold text-green-800">
+        {calmingText}
+      </p>
+    </div>
+  </div>
+)}
+
 
       {/* ❓ Асуултууд */}
       {!submitted && quiz.questions && quiz.questions.length > 0 && (

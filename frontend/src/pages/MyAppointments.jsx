@@ -1,3 +1,4 @@
+// frontend/src/pages/MyAppointments.jsx
 import React, { useContext, useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
@@ -6,6 +7,7 @@ import { toast } from 'react-toastify';
 import { assets } from '../assets/assets';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+import CancelModal from '../components/CancelModal'; // 🌟 нэмэгдсэн
 
 const MyAppointments = () => {
   const { backendUrl, token } = useContext(AppContext);
@@ -14,6 +16,8 @@ const MyAppointments = () => {
   const [appointments, setAppointments] = useState([]);
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [calendarDate, setCalendarDate] = useState(new Date());
+  const [cancelModalOpen, setCancelModalOpen] = useState(false); // 🌟 нэмэгдсэн
+  const [appointmentToCancel, setAppointmentToCancel] = useState(null); // 🌟 нэмэгдсэн
 
   const months = ["1-р сар", "2-р сар", "3-р сар", "4-р сар", "5-р сар", "6-р сар", "7-р сар", "8-р сар", "9-р сар", "10-р сар", "11-р сар", "12-р сар"];
 
@@ -31,11 +35,11 @@ const MyAppointments = () => {
     }
   };
 
-  const cancelAppointment = async (appointmentId) => {
+  const cancelAppointmentWithReason = async (appointmentId, reason) => {
     try {
       const { data } = await axios.post(
         backendUrl + '/api/user/cancel-appointment',
-        { appointmentId },
+        { appointmentId, reason },
         { headers: { token } }
       );
       if (data.success) {
@@ -47,6 +51,11 @@ const MyAppointments = () => {
     } catch (error) {
       toast.error(error.message);
     }
+  };
+
+  const handleCancelClick = (id) => {
+    setAppointmentToCancel(id);
+    setCancelModalOpen(true);
   };
 
   const isPastAppointment = (slotDate, slotTime) => {
@@ -105,7 +114,7 @@ const MyAppointments = () => {
                   <div className='mt-2 flex flex-wrap gap-2'>
                     {!item.cancelled && !item.payment && !item.isCompleted && !isPast && (
                       <button
-                        onClick={() => cancelAppointment(item._id)}
+                        onClick={() => handleCancelClick(item._id)} // 🌟 шинэ function
                         className='text-xs px-4 py-1 border border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition'
                       >Цуцлах</button>
                     )}
@@ -140,6 +149,16 @@ const MyAppointments = () => {
             }</p>
           </div>
         </div>
+      )}
+
+      {cancelModalOpen && (
+        <CancelModal
+          onClose={() => setCancelModalOpen(false)}
+          onSubmit={(reason) => {
+            cancelAppointmentWithReason(appointmentToCancel, reason);
+            setCancelModalOpen(false);
+          }}
+        />
       )}
     </div>
   );

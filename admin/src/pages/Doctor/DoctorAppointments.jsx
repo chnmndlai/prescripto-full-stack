@@ -115,7 +115,12 @@ const DoctorAppointments = () => {
             <p className="font-semibold text-gray-700">{currency}{item.amount}</p>
 
             {item.cancelled ? (
-              <p className="text-red-500 text-sm font-medium">❌ Цуцлагдсан</p>
+              <div>
+                <p className="text-red-500 text-sm font-medium">❌ Цуцлагдсан</p>
+                {item.cancelReason && (
+                  <p className="text-xs text-red-600 italic">📝 {item.cancelReason}</p>
+                )}
+              </div>
             ) : item.isCompleted ? (
               <p className="text-green-500 text-sm font-medium">✔ Дууссан</p>
             ) : (
