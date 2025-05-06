@@ -15,6 +15,8 @@ const Appointment = () => {
   const [docSlots, setDocSlots] = useState([]);
   const [slotIndex, setSlotIndex] = useState(0);
   const [slotTime, setSlotTime] = useState('');
+  const [note, setNote] = useState('');
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const navigate = useNavigate();
 
@@ -77,7 +79,7 @@ const Appointment = () => {
     try {
       const { data } = await axios.post(
         `${backendUrl}/api/user/book-appointment`,
-        { docId, slotDate, slotTime },
+        { docId, slotDate, slotTime, note },
         { headers: { token } }
       );
 
@@ -106,16 +108,16 @@ const Appointment = () => {
     <div className="px-4">
       <div className='flex flex-col sm:flex-row gap-4'>
         <div>
-          <img className='bg-primary w-full sm:max-w-72 rounded-lg shadow-md' src={docInfo.image} alt={docInfo.name} />
+          <img className='bg-primary w-full sm:max-w-72 aspect-[3/4] object-cover rounded-lg shadow-md' src={docInfo.image} alt={docInfo.name} />
         </div>
 
         <div className='flex-1 border border-gray-300 rounded-xl p-8 bg-white shadow-md'>
           <p className='flex items-center gap-2 text-3xl font-semibold text-gray-800'>
-            {docInfo.name} <img className='w-5' src={assets.verified_icon} alt="Баталгаажсан" />
+            {docInfo.name} <img className='w-5' src={assets.verified_icon} alt="Баталгаажсан" title="Баталгаажсан эмч" />
           </p>
           <div className='flex items-center gap-2 mt-1 text-gray-600'>
-            <p>{docInfo.degree} - {docInfo.speciality}</p>
-            <button className='py-0.5 px-2 border text-xs rounded-full bg-gray-100'>{docInfo.experience}</button>
+            <p>🧠 {docInfo.degree} - {docInfo.speciality}</p>
+            <button className='py-0.5 px-2 border text-xs rounded-full bg-gray-100'>⏳ {docInfo.experience}</button>
           </div>
 
           <div className='mt-3'>
@@ -123,18 +125,18 @@ const Appointment = () => {
             <p className='text-sm text-gray-600 mt-1'>{docInfo.about || 'Тайлбар оруулаагүй байна.'}</p>
           </div>
 
-          <p className='text-gray-600 font-medium mt-4'>Зөвлөгөөний үнэ: <span className='text-gray-900 font-bold'>{currencySymbol}{docInfo.fees}</span></p>
+          <p className='text-gray-600 font-medium mt-4'>💰 Зөвлөгөөний үнэ: <span className='text-gray-900 font-bold'>{currencySymbol}{docInfo.fees}</span></p>
         </div>
       </div>
 
       <div className='sm:ml-72 sm:pl-4 mt-8 font-medium text-gray-700'>
-        <p className='text-lg mb-3'>🕒 Захиалгын боломжит цагууд</p>
+        <p className='text-lg mb-3'>📅 Захиалгын боломжит цагууд</p>
         <div className='flex gap-3 overflow-x-auto'>
           {docSlots.map((item, index) => (
             <div
               onClick={() => setSlotIndex(index)}
               key={index}
-              className={`text-center py-4 px-3 rounded-xl min-w-16 cursor-pointer transition ${slotIndex === index ? 'bg-primary text-white shadow' : 'bg-white border'}`}
+              className={`text-center py-4 px-3 rounded-xl min-w-16 cursor-pointer transition ${slotIndex === index ? 'bg-primary text-white ring-2 ring-blue-400 shadow' : 'bg-white border'}`}
             >
               <p className='text-sm'>{item[0] && daysOfWeek[item[0].datetime.getDay()]}</p>
               <p className='text-xl font-semibold'>{item[0] && item[0].datetime.getDate()}</p>
@@ -154,13 +156,36 @@ const Appointment = () => {
           ))}
         </div>
 
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          className='w-full mt-6 p-3 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-300'
+          rows='3'
+          placeholder='📝 Нэмэлт мэдээлэл: Жишээ нь — Сүүлийн үед сэтгэл гутралтай байна...'
+        />
+
         <button
-          onClick={bookAppointment}
+          onClick={() => setShowConfirm(true)}
           className='bg-primary text-white px-10 py-3 mt-6 rounded-full hover:bg-blue-700 transition shadow'
         >
           Цаг захиалах
         </button>
       </div>
+
+      {showConfirm && (
+        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
+          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md text-center">
+            <h3 className="text-lg font-semibold mb-2">Захиалгыг баталгаажуулах уу?</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Та <b>{docInfo.name}</b> эмчтэй <b>{docSlots[slotIndex][0]?.datetime.toLocaleDateString()}</b> өдөр <b>{slotTime}</b> цагт уулзахдаа итгэлтэй байна уу?
+            </p>
+            <div className="flex justify-center gap-4">
+              <button onClick={() => setShowConfirm(false)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Болих</button>
+              <button onClick={bookAppointment} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Тийм</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       <RelatedDoctors speciality={docInfo.speciality} docId={docId} />
     </div>

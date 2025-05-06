@@ -4,13 +4,19 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 const Chatbot = ({ onClose }) => {
-  const [messages, setMessages] = useState([
-    {
-      role: 'assistant',
-      content: '👋 Сайн байна уу! Prescripto chatbot-д тавтай морил!',
-      buttons: ['🧠 Тест бөглөх', '📚 Сургалт', '📞 Зөвлөгөө авах'],
-    },
-  ]);
+  const [messages, setMessages] = useState(() => {
+    const saved = localStorage.getItem('chatlog');
+    return saved
+      ? JSON.parse(saved)
+      : [
+          {
+            role: 'assistant',
+            content: '👋 Сайн байна уу! Prescripto chatbot-д тавтай морил!',
+            buttons: ['🧠 Тест бөглөх', '📚 Сургалт', '📞 Зөвлөгөө авах'],
+          },
+        ];
+  });
+
   const [userInput, setUserInput] = useState('');
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
@@ -32,13 +38,16 @@ const Chatbot = ({ onClose }) => {
 
   useEffect(scrollToBottom, [messages]);
 
+  useEffect(() => {
+    localStorage.setItem('chatlog', JSON.stringify(messages));
+  }, [messages]);
+
   const sendMessage = async (text) => {
     const newMessages = [...messages, { role: 'user', content: text }];
     setMessages(newMessages);
     setUserInput('');
     setLoading(true);
 
-    // Quick action navigation
     if (text === '🧠 Тест бөглөх') {
       navigate('/quiz/diabetes');
       return;
@@ -67,7 +76,6 @@ const Chatbot = ({ onClose }) => {
 
       const data = await res.json();
       const reply = data.choices?.[0]?.message?.content || '🤖 Хариулт ирсэнгүй.';
-
       setMessages([...newMessages, { role: 'assistant', content: reply }]);
     } catch (err) {
       console.error(err);
@@ -98,7 +106,7 @@ const Chatbot = ({ onClose }) => {
       className="w-[360px] h-[500px] bg-white shadow-xl rounded-2xl flex flex-col border border-gray-200 overflow-hidden fixed bottom-24 right-6 z-50"
     >
       {/* Header */}
-      <div className="bg-indigo-500 text-white py-2 px-4 flex items-center justify-between">
+      <div className="bg-indigo-600 text-white py-2 px-4 flex items-center justify-between rounded-t-2xl">
         <h2 className="font-semibold text-sm">Prescripto 🤖 Chatbot</h2>
         <button onClick={onClose} className="text-white hover:text-red-300 font-bold text-lg">
           ×
@@ -106,27 +114,26 @@ const Chatbot = ({ onClose }) => {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-2 bg-gray-50">
+      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50">
         {messages.map((msg, idx) => (
-          <div key={idx}>
+          <div key={idx} className="animate-fade-in">
             <div
-              className={`text-sm px-4 py-2 max-w-[80%] rounded-xl whitespace-pre-wrap ${
+              className={`text-sm px-4 py-2 rounded-xl max-w-[80%] whitespace-pre-wrap ${
                 msg.role === 'user'
-                  ? 'bg-blue-100 ml-auto text-right'
-                  : 'bg-white border ml-0 text-left'
+                  ? 'bg-indigo-100 ml-auto text-right'
+                  : 'bg-white border border-gray-200 ml-0 text-left shadow-sm'
               }`}
             >
               {msg.content}
             </div>
 
-            {/* Quick buttons */}
             {msg.buttons && (
               <div className="mt-2 flex flex-col gap-2 w-[85%]">
                 {msg.buttons.map((btnText, i) => (
                   <button
                     key={i}
                     onClick={() => handleQuickReply(btnText)}
-                    className="text-sm px-3 py-2 bg-gray-100 text-gray-800 rounded-md text-left border hover:bg-gray-200 transition"
+                    className="text-sm px-4 py-2 bg-gray-100 hover:bg-indigo-100 border border-gray-200 text-gray-800 rounded-lg text-left transition"
                   >
                     {btnText}
                   </button>
@@ -135,6 +142,7 @@ const Chatbot = ({ onClose }) => {
             )}
           </div>
         ))}
+
         {loading && (
           <div className="text-xs text-gray-500 animate-pulse">🤖 Хариулт бичиж байна...</div>
         )}
@@ -154,7 +162,7 @@ const Chatbot = ({ onClose }) => {
         <button
           onClick={handleSend}
           disabled={loading}
-          className="bg-indigo-500 hover:bg-indigo-600 text-white text-sm px-4 py-2 rounded-full"
+          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full shadow-md transition"
         >
           Илгээх
         </button>

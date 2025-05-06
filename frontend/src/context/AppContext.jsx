@@ -13,7 +13,44 @@ const AppContextProvider = (props) => {
   const [dToken, setDToken] = useState(localStorage.getItem('dToken') || '');
   const [userData, setUserData] = useState(false);
 
-  // Fetch doctors
+  const [savedAdvice, setSavedAdvice] = useState([]); // ✅ хадгалсан зөвлөгөө
+
+  // ✅ Зөвлөгөө ачаалах
+  const fetchSavedAdvice = async () => {
+    try {
+      const res = await axios.get(`${backendUrl}/api/user/get-profile`, {
+        headers: { token },
+      });
+      if (res.data.success) {
+        setSavedAdvice(res.data.userData.savedAdvice || []);
+      }
+    } catch (err) {
+      console.error("Хадгалсан зөвлөгөө ачаалахад алдаа гарлаа", err);
+    }
+  };
+
+  // ✅ Зөвлөгөө хадгалах / устгах
+  const toggleSaveAdvice = async (adviceId) => {
+    try {
+      const res = await axios.post(
+        `${backendUrl}/api/user/toggle-save-advice`,
+        { adviceId },
+        { headers: { token } }
+      );
+
+      if (res.data.success) {
+        setSavedAdvice((prev) =>
+          res.data.saved
+            ? [...prev, adviceId]
+            : prev.filter((id) => id !== adviceId)
+        );
+      }
+    } catch (err) {
+      console.error("Зөвлөгөө хадгалах үед алдаа гарлаа", err);
+    }
+  };
+
+  // ✅ Эмчийн жагсаалт татах
   const getDoctosData = async () => {
     try {
       const { data } = await axios.get(backendUrl + '/api/doctor/list');
@@ -28,7 +65,7 @@ const AppContextProvider = (props) => {
     }
   };
 
-  // Fetch user profile
+  // ✅ Хэрэглэгчийн мэдээлэл ачаалах
   const loadUserProfileData = async () => {
     try {
       const { data } = await axios.get(backendUrl + '/api/user/get-profile', {
@@ -37,6 +74,7 @@ const AppContextProvider = (props) => {
 
       if (data.success) {
         setUserData(data.userData);
+        setSavedAdvice(data.userData.savedAdvice || []);
       } else {
         toast.error(data.message);
       }
@@ -68,6 +106,9 @@ const AppContextProvider = (props) => {
     userData,
     setUserData,
     loadUserProfileData,
+    savedAdvice,
+    setSavedAdvice,
+    toggleSaveAdvice,
   };
 
   return (

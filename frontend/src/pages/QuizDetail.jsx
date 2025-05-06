@@ -8,7 +8,7 @@ const QuizDetail = () => {
   const [quiz, setQuiz] = useState(null);
   const [answers, setAnswers] = useState({});
   const [submitted, setSubmitted] = useState(false);
-  const [result, setResult] = useState(null); // ✅ оноо, эрсдэл хадгалах
+  const [result, setResult] = useState(null);
 
   useEffect(() => {
     const fetchQuiz = async () => {
@@ -46,80 +46,95 @@ const QuizDetail = () => {
     setSubmitted(true);
   };
 
-  if (!quiz) return <div className="p-6">Тест ачаалж байна...</div>;
+  if (!quiz) return <div className="p-6 text-center">⏳ Тест ачаалж байна...</div>;
 
   return (
-    <div className="max-w-2xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto px-4 py-8">
       {/* 🖼 Зураг */}
-      <div className="flex justify-center mb-4">
+      <div className="flex justify-center mb-6">
         <img
           src={quiz.image}
           alt={quiz.title}
-          className="rounded-xl shadow w-full max-w-md h-auto object-contain"
+          className="w-full max-w-md aspect-[4/3] object-cover rounded-xl shadow"
         />
       </div>
 
-      {/* 🧠 Гарчиг */}
-      <h2 className="text-2xl font-bold mb-1">{quiz.title}</h2>
-      <p className="text-gray-700 mb-2">{quiz.summary}</p>
+      {/* 🧠 Гарчиг, тайлбар */}
+      <h2 className="text-2xl font-bold text-center text-gray-800 mb-2">{quiz.title}</h2>
+      <p className="text-center text-gray-600 mb-4">{quiz.summary}</p>
 
       {/* 👨‍⚕️ Эмчийн мэдээлэл */}
       {quiz.doctor && (
-        <div className="text-sm text-gray-500 mb-4">
+        <div className="text-sm text-center text-gray-500 mb-6">
           👨‍⚕️ <span className="font-semibold">{quiz.doctor.name}</span>
           {quiz.doctor.speciality && (
-            <span className="ml-1">| {quiz.doctor.speciality}</span>
+            <span className="ml-2">— {quiz.doctor.speciality}</span>
           )}
         </div>
       )}
 
-      {/* ✅ Хариулсны дараах үнэлгээ */}
+      {/* ✅ Үр дүн */}
       {submitted && result && (
-        <div className="mt-4 p-4 bg-gray-100 rounded text-center">
+        <div className="mt-6 bg-green-50 border border-green-200 rounded-lg p-5 text-center shadow">
           <p className="text-lg font-semibold text-green-700">
             📝 Та {result.yesCount} удаа "Тийм" гэж хариулсан байна.
           </p>
-          <p className="mt-2 text-base text-blue-700">{result.riskLevel}</p>
+          <p className="mt-1 text-base text-blue-700 font-medium">{result.riskLevel}</p>
+
+          <div className="mt-5 bg-white border rounded-lg p-4 text-left text-sm text-gray-700 shadow-sm">
+            <h4 className="font-semibold text-gray-800 mb-2">🧘 Тайвшруулах зөвлөгөө</h4>
+            <ul className="list-disc list-inside space-y-1">
+              <li>Та ганцаараа биш — энэ бол нийтлэг нөхцөл.</li>
+              <li>Өөрийгөө хайрлах цаг гарга.</li>
+              <li>Өдөр бүр гүн амьсгал авч бясалгал хийх.</li>
+              <li>Хэрэв шаардлагатай бол эмчид хандана уу.</li>
+            </ul>
+          </div>
         </div>
       )}
 
-      {/* 📋 Асуултууд */}
+      {/* ❓ Асуултууд */}
       {!submitted && quiz.questions && quiz.questions.length > 0 && (
-        <form onSubmit={handleSubmit} className="space-y-5 mt-6">
+        <form onSubmit={handleSubmit} className="space-y-6 mt-6">
           {quiz.questions.map((q, idx) => (
-            <div key={idx} className="border-b pb-4">
-              <p className="mb-2 font-medium">{idx + 1}. {q.question || q}</p>
-              <label className="mr-4">
-                <input
-                  type="radio"
-                  name={`q${idx}`}
-                  value="yes"
-                  checked={answers[idx] === 'yes'}
-                  onChange={() => handleChange(idx, 'yes')}
-                /> Тийм
-              </label>
-              <label>
-                <input
-                  type="radio"
-                  name={`q${idx}`}
-                  value="no"
-                  checked={answers[idx] === 'no'}
-                  onChange={() => handleChange(idx, 'no')}
-                /> Үгүй
-              </label>
+            <div key={idx} className="bg-gray-50 p-4 rounded-lg hover:bg-gray-100 transition">
+              <p className="font-medium mb-2">{idx + 1}. {q.question || q}</p>
+              <div className="flex gap-6">
+                <label className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    name={`q${idx}`}
+                    value="yes"
+                    checked={answers[idx] === 'yes'}
+                    onChange={() => handleChange(idx, 'yes')}
+                  />
+                  Тийм
+                </label>
+                <label className="flex items-center gap-1">
+                  <input
+                    type="radio"
+                    name={`q${idx}`}
+                    value="no"
+                    checked={answers[idx] === 'no'}
+                    onChange={() => handleChange(idx, 'no')}
+                  />
+                  Үгүй
+                </label>
+              </div>
             </div>
           ))}
           <button
             type="submit"
-            className="bg-blue-600 text-white px-6 py-2 rounded hover:bg-blue-700"
+            className="block w-full mt-4 bg-indigo-600 text-white font-semibold py-2 rounded hover:bg-indigo-700 transition"
           >
             Илгээх
           </button>
         </form>
       )}
 
+      {/* ⚠️ Хоосон асуулт */}
       {quiz.questions && quiz.questions.length === 0 && (
-        <p className="text-red-500">⚠️ Асуулт алга байна.</p>
+        <p className="text-red-500 mt-6 text-center">⚠️ Энэ тест асуултгүй байна.</p>
       )}
     </div>
   );

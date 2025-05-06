@@ -36,7 +36,7 @@ const TopDoctors = () => {
 
             {/* 🩺 Туршлага */}
             <p className="text-sm text-blue-600 mt-1">
-              {item.experience || 5} жил ажилласан
+              {item.experience || 5}  ажилласан
             </p>
 
             {/* 🧠 Мэргэжил */}

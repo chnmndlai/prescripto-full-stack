@@ -112,6 +112,9 @@ const Navbar = ({ setShowChat }) => {
                   <p onClick={() => { navigate('/my-appointments'); setShowDropdown(false); }} className='hover:text-primary cursor-pointer'>
                     Цаг захиалгууд
                   </p>
+                  <p onClick={() => { navigate('/saved-advice'); setShowDropdown(false); }} className='hover:text-primary cursor-pointer'>
+                    Хадгалсан зөвлөгөө
+                  </p>
                   <p onClick={() => { logout(); setShowDropdown(false); }} className='hover:text-primary cursor-pointer'>
                     Гарах
                   </p>

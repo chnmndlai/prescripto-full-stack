@@ -8,14 +8,12 @@ import { v2 as cloudinary } from 'cloudinary';
 import stripe from "stripe";
 import razorpay from 'razorpay';
 
-// Payment gateways
 const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
 const razorpayInstance = new razorpay({
   key_id: process.env.RAZORPAY_KEY_ID,
   key_secret: process.env.RAZORPAY_KEY_SECRET,
 });
 
-// ✅ Register
 const registerUser = async (req, res) => {
   try {
     const { name, email, password } = req.body;
@@ -50,7 +48,6 @@ const registerUser = async (req, res) => {
   }
 };
 
-// ✅ Login
 const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
@@ -74,29 +71,25 @@ const loginUser = async (req, res) => {
   }
 };
 
-// ✅ Profile
 const getProfile = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const userData = await userModel.findById(userId).select('-password');
+    const userData = await userModel.findById(req.userId).select('-password');
     res.json({ success: true, userData });
   } catch (error) {
-    console.log(error);
     res.status(500).json({ success: false, message: error.message });
   }
 };
 
-// ✅ Update profile
 const updateProfile = async (req, res) => {
   try {
-    const { userId, name, phone, address, dob, gender } = req.body;
+    const { name, phone, address, dob, gender } = req.body;
     const imageFile = req.file;
 
     if (!name || !phone || !dob || !gender) {
       return res.status(400).json({ success: false, message: "Мэдээлэл дутуу байна." });
     }
 
-    await userModel.findByIdAndUpdate(userId, {
+    await userModel.findByIdAndUpdate(req.userId, {
       name,
       phone,
       address: JSON.parse(address),
@@ -106,7 +99,7 @@ const updateProfile = async (req, res) => {
 
     if (imageFile) {
       const uploaded = await cloudinary.uploader.upload(imageFile.path, { resource_type: "image" });
-      await userModel.findByIdAndUpdate(userId, { image: uploaded.secure_url });
+      await userModel.findByIdAndUpdate(req.userId, { image: uploaded.secure_url });
     }
 
     res.json({ success: true, message: 'Профайл шинэчлэгдлээ.' });
@@ -117,10 +110,11 @@ const updateProfile = async (req, res) => {
   }
 };
 
-// ✅ Book appointment
 const bookAppointment = async (req, res) => {
   try {
-    const { userId, docId, slotDate, slotTime } = req.body;
+    const { docId, slotDate, slotTime } = req.body;
+    const userId = req.userId;
+
     const docData = await doctorModel.findById(docId).select("-password");
 
     if (!docData.available) {
@@ -160,11 +154,15 @@ const bookAppointment = async (req, res) => {
   }
 };
 
-// ✅ Cancel appointment
 const cancelAppointment = async (req, res) => {
   try {
-    const { userId, appointmentId } = req.body;
+    const { appointmentId } = req.body;
+    const userId = req.userId;
     const appointmentData = await appointmentModel.findById(appointmentId);
+
+    if (!appointmentData) {
+      return res.status(404).json({ success: false, message: 'Захиалга олдсонгүй.' });
+    }
 
     if (appointmentData.userId.toString() !== userId) {
       return res.status(403).json({ success: false, message: 'Зөвшөөрөгдөөгүй үйлдэл.' });
@@ -174,8 +172,12 @@ const cancelAppointment = async (req, res) => {
 
     const { docId, slotDate, slotTime } = appointmentData;
     const doctorData = await doctorModel.findById(docId);
-    doctorData.slots_booked[slotDate] = doctorData.slots_booked[slotDate].filter(e => e !== slotTime);
 
+    if (!doctorData.slots_booked || !doctorData.slots_booked[slotDate]) {
+      return res.json({ success: true, message: 'Цаг цуцлагдлаа (цагийн мэдээлэл бүртгэгдээгүй байсан).' });
+    }
+
+    doctorData.slots_booked[slotDate] = doctorData.slots_booked[slotDate].filter(e => e !== slotTime);
     await doctorModel.findByIdAndUpdate(docId, { slots_booked: doctorData.slots_booked });
 
     res.json({ success: true, message: 'Цаг цуцлагдлаа.' });
@@ -186,11 +188,9 @@ const cancelAppointment = async (req, res) => {
   }
 };
 
-// ✅ List appointments
 const listAppointment = async (req, res) => {
   try {
-    const { userId } = req.body;
-    const appointments = await appointmentModel.find({ userId });
+    const appointments = await appointmentModel.find({ userId: req.userId });
     res.json({ success: true, appointments });
   } catch (error) {
     console.log(error);
@@ -198,7 +198,6 @@ const listAppointment = async (req, res) => {
   }
 };
 
-// ✅ Razorpay - create order
 const paymentRazorpay = async (req, res) => {
   try {
     const { appointmentId } = req.body;
@@ -222,7 +221,6 @@ const paymentRazorpay = async (req, res) => {
   }
 };
 
-// ✅ Razorpay - verify
 const verifyRazorpay = async (req, res) => {
   try {
     const { razorpay_order_id } = req.body;
@@ -241,7 +239,29 @@ const verifyRazorpay = async (req, res) => {
   }
 };
 
-// ✅ Stripe
+const toggleSavedAdvice = async (req, res) => {
+  const userId = req.userId;
+  const { adviceId } = req.body;
+
+  try {
+    const user = await userModel.findById(userId);
+    if (!user) return res.status(404).json({ success: false, message: 'Хэрэглэгч олдсонгүй' });
+
+    const alreadySaved = user.savedAdvice.includes(adviceId);
+
+    if (alreadySaved) {
+      user.savedAdvice.pull(adviceId);
+    } else {
+      user.savedAdvice.push(adviceId);
+    }
+
+    await user.save();
+    res.json({ success: true, saved: !alreadySaved });
+  } catch (err) {
+    res.status(500).json({ success: false, message: 'Алдаа гарлаа' });
+  }
+};
+
 const paymentStripe = async (req, res) => {
   try {
     const { appointmentId } = req.body;
@@ -276,7 +296,6 @@ const paymentStripe = async (req, res) => {
   }
 };
 
-// ✅ Stripe verify
 const verifyStripe = async (req, res) => {
   try {
     const { appointmentId, success } = req.body;
@@ -306,4 +325,5 @@ export {
   verifyRazorpay,
   paymentStripe,
   verifyStripe,
+  toggleSavedAdvice,
 };

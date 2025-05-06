@@ -21,7 +21,7 @@ import AdviceDetail from './pages/AdviceDetail';
 import QuizList from './pages/QuizList';
 import QuizDetail from './pages/QuizDetail';
 import DiabetesQuiz from './pages/DiabetesQuiz';
-
+import SavedAdvice from './pages/SavedAdvice';
 const App = () => {
   const [showChat, setShowChat] = useState(false);
 
@@ -47,6 +47,7 @@ const App = () => {
         <Route path='/quiz/:id' element={<QuizDetail />} />
         <Route path='/quiz/diabetes' element={<DiabetesQuiz />} />
         <Route path='/chatbot' element={<Chatbot />} />
+        <Route path="/saved-advice" element={<SavedAdvice />} />
       </Routes>
 
       {/* 🔹 Floating popup chatbot */}

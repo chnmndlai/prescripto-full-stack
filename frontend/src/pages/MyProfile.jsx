@@ -104,7 +104,7 @@ const MyProfile = () => {
                     address: { ...prev.address, line1: e.target.value },
                   }))
                 }
-                value={userData.address.line1}
+                value={userData.address?.line1 || ''}
               />
               <input
                 className="bg-gray-50 px-2 py-1 rounded"
@@ -116,14 +116,13 @@ const MyProfile = () => {
                     address: { ...prev.address, line2: e.target.value },
                   }))
                 }
-                value={userData.address.line2}
+                value={userData.address?.line2 || ''}
               />
             </div>
           ) : (
             <span className="text-gray-600">
-              {userData.address.line1}
-              <br />
-              {userData.address.line2}
+              {userData.address?.line1 || ''}<br />
+              {userData.address?.line2 || ''}
             </span>
           )}
         </div>
@@ -158,11 +157,13 @@ const MyProfile = () => {
             />
           ) : (
             <span>
-              {new Date(userData.dob).toLocaleDateString('mn-MN', {
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
+              {userData.dob
+                ? new Date(userData.dob).toLocaleDateString('mn-MN', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric',
+                  })
+                : 'Оруулаагүй'}
             </span>
           )}
         </div>

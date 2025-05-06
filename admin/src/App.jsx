@@ -29,7 +29,7 @@ import QuizList from './pages/Doctor/QuizList';
 import QuizDetail from './pages/Doctor/QuizDetail';
 import EditQuiz from './pages/Doctor/EditQuiz';
 import EditAdviceDoctor from './pages/Doctor/EditAdvice'; // ✅ Шинээр нэмлээ
-import TakeQuiz from './pages/TakeQuiz';
+
 
 const App = () => {
   const { dToken } = useContext(DoctorContext);
@@ -76,7 +76,7 @@ const App = () => {
           
 
           {/* ✅ Тест бөглөх хуудас — TakeQuiz */}
-          <Route path='/quiz/:id' element={<TakeQuiz />} />
+          
         </Routes>
       </div>
     </div>

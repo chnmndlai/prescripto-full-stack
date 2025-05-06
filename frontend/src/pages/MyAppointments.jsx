@@ -70,8 +70,8 @@ const MyAppointments = () => {
 
   return (
     <div className='grid md:grid-cols-2 gap-8 py-10 px-4'>
-      <div className='border rounded-xl shadow p-4'>
-        <h2 className='text-xl font-bold text-gray-700 mb-4'>🗓 Миний цагийн хуваарь</h2>
+      <div className='border rounded-2xl shadow p-6 bg-white'>
+        <h2 className='text-2xl font-bold text-gray-700 mb-4'>🗓 Миний цагийн хуваарь</h2>
         <Calendar
           onChange={setCalendarDate}
           value={calendarDate}
@@ -81,33 +81,37 @@ const MyAppointments = () => {
       </div>
 
       <div>
-        <h2 className='text-xl font-bold text-gray-700 mb-4'>📋 Захиалгын жагсаалт</h2>
+        <h2 className='text-2xl font-bold text-gray-700 mb-4'>📋 Захиалгын жагсаалт</h2>
         <div className='space-y-6'>
+          {appointments.length === 0 && (
+            <p className='text-gray-500'>Одоогоор захиалга байхгүй байна.</p>
+          )}
+
           {appointments.map((item, index) => {
             const isPast = isPastAppointment(item.slotDate, item.slotTime);
             return (
-              <div key={index} className='flex gap-4 border rounded-lg p-4 shadow-sm bg-white'>
+              <div key={index} className='flex gap-4 border rounded-xl p-4 shadow-sm bg-white hover:shadow-md transition'>
                 <img
-                  className='w-28 h-28 object-cover rounded-md cursor-pointer'
+                  className='w-24 h-24 object-cover rounded-lg cursor-pointer border'
                   src={item.docData.image}
                   alt={item.docData.name}
                   onClick={() => setSelectedAppointment(item)}
                 />
-                <div className='flex-1'>
-                  <p className='font-bold text-lg'>{item.docData.name}</p>
-                  <p className='text-sm text-gray-500'>{item.docData.speciality}</p>
-                  <p className='text-sm mt-2'><strong>Хаяг:</strong> {item.docData.address.line1}, {item.docData.address.line2}</p>
-                  <p className='text-sm'><strong>Цаг:</strong> {slotDateFormat(item.slotDate)} - {item.slotTime}</p>
+                <div className='flex-1 text-sm'>
+                  <p className='font-semibold text-base text-gray-800'>{item.docData.name}</p>
+                  <p className='text-gray-500'>{item.docData.speciality}</p>
+                  <p className='mt-1'><strong>Хаяг:</strong> {item.docData.address.line1}, {item.docData.address.line2}</p>
+                  <p><strong>Цаг:</strong> {slotDateFormat(item.slotDate)} - {item.slotTime}</p>
                   <div className='mt-2 flex flex-wrap gap-2'>
                     {!item.cancelled && !item.payment && !item.isCompleted && !isPast && (
                       <button
                         onClick={() => cancelAppointment(item._id)}
-                        className='text-sm px-4 py-1 border border-red-500 text-red-500 rounded hover:bg-red-500 hover:text-white transition'
+                        className='text-xs px-4 py-1 border border-red-500 text-red-500 rounded-full hover:bg-red-500 hover:text-white transition'
                       >Цуцлах</button>
                     )}
-                    {item.cancelled && <span className='text-red-600 text-sm'>Цуцлагдсан</span>}
-                    {item.isCompleted && <span className='text-green-600 text-sm'>Хийгдсэн</span>}
-                    {item.payment && !item.isCompleted && <span className='text-blue-600 text-sm'>Төлбөр хийгдсэн</span>}
+                    {item.cancelled && <span className='text-red-600 text-xs'>Цуцлагдсан</span>}
+                    {item.isCompleted && <span className='text-green-600 text-xs'>Хийгдсэн</span>}
+                    {item.payment && !item.isCompleted && <span className='text-blue-600 text-xs'>Төлбөр хийгдсэн</span>}
                   </div>
                 </div>
               </div>
@@ -118,7 +122,7 @@ const MyAppointments = () => {
 
       {selectedAppointment && (
         <div className='fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50'>
-          <div className='bg-white p-6 rounded-xl max-w-md w-full text-sm shadow-xl relative'>
+          <div className='bg-white p-6 rounded-2xl max-w-md w-full text-sm shadow-xl relative'>
             <button
               className='absolute top-2 right-3 text-gray-500 text-xl hover:text-black'
               onClick={() => setSelectedAppointment(null)}
