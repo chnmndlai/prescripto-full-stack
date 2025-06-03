@@ -1,129 +1,234 @@
+// src/pages/Doctors.jsx
 import React, { useContext, useEffect, useState } from 'react';
 import { AppContext } from '../context/AppContext';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FaStar } from 'react-icons/fa';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { FaStar, FaRegCheckCircle, FaComment, FaCalendarAlt } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
-const Doctors = () => {
-  const { speciality } = useParams();
+// --- Doctor Card ---
+const DoctorCard = ({ doc, onMore }) => {
   const navigate = useNavigate();
-  const { doctors } = useContext(AppContext);
-
-  const [filterDoc, setFilterDoc] = useState([]);
-  const [showFilter, setShowFilter] = useState(false);
-  const [searchText, setSearchText] = useState('');
-
-  useEffect(() => {
-    if (!doctors || doctors.length === 0) return;
-
-    const decodedSpeciality = decodeURIComponent(speciality || '').toLowerCase().trim();
-    let filtered = doctors;
-
-    if (speciality && decodedSpeciality !== 'all doctors') {
-      filtered = filtered.filter(
-        (doc) => doc.speciality.toLowerCase().trim() === decodedSpeciality
-      );
-    }
-
-    if (searchText.trim()) {
-      filtered = filtered.filter(doc =>
-        doc.name.toLowerCase().includes(searchText.trim().toLowerCase()) ||
-        doc.speciality.toLowerCase().includes(searchText.trim().toLowerCase())
-      );
-    }
-
-    setFilterDoc(filtered);
-  }, [doctors, speciality, searchText]);
-
-  const specialties = [
-    "Клиник сэтгэл зүйч",
-    "Сэтгэцийн эмч",
-    "Хүүхдийн сэтгэл зүйч",
-    "Зан үйл судлаач",
-    "Сэтгэл засалч / зөвлөх",
-    "Гэр бүл, хосын сэтгэл зүйч"
-  ];
-
   return (
-    <div className="mx-4 sm:mx-10">
-      <p className="text-gray-600 text-center">Эмчийн мэргэжлээр шүүн үзэх</p>
-
-      <div className="flex flex-col sm:flex-row items-start gap-5 mt-5">
-        <button
-          onClick={() => setShowFilter(!showFilter)}
-          className={`py-1 px-3 border rounded text-sm transition-all sm:hidden ${showFilter ? 'bg-primary text-white' : ''}`}
-        >
-          Шүүлтүүр
-        </button>
-
-        <div className={`sticky top-24 flex-col gap-4 text-sm text-gray-600 ${showFilter ? 'flex' : 'hidden sm:flex'}`}>
-          <button
-            onClick={() => navigate('/doctors/all doctors')}
-            className={`border px-4 py-2 rounded hover:bg-blue-50 active:bg-blue-100 transition ${!speciality || decodeURIComponent(speciality).toLowerCase() === 'all doctors' ? 'bg-blue-100 text-blue-600 font-medium' : ''}`}
-          >
-            Бүх эмч нар
-          </button>
-          {specialties.map((spec, index) => (
-            <button
-              key={index}
-              onClick={() => navigate(`/doctors/${encodeURIComponent(spec)}`)}
-              className={`border px-4 py-2 rounded hover:bg-blue-50 active:bg-blue-100 transition ${decodeURIComponent(speciality).toLowerCase() === spec.toLowerCase() ? 'bg-blue-100 text-blue-600 font-medium' : ''}`}
-            >
-              {spec}
-            </button>
-          ))}
-        </div>
-
-        <div className='w-full sm:hidden mt-4'>
-          <input
-            type='text'
-            placeholder='Эмчийн нэр эсвэл мэргэжлээр хайх'
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className='w-full px-4 py-2 border border-gray-300 rounded-full text-sm focus:outline-none focus:ring-2 focus:ring-primary'
+    <motion.div
+      whileHover={{ y: -4, boxShadow: '0 12px 32px rgba(0,0,0,0.12)' }}
+      transition={{ type: 'spring', stiffness: 300 }}
+      className="relative flex flex-col bg-white rounded-2xl shadow-lg border overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary min-h-[340px]"
+      onClick={() => onMore(doc)}
+    >
+      <div className="relative">
+        <img
+          src={doc.image}
+          alt={doc.name}
+          loading="lazy"
+          className="w-full object-contain rounded-t-2xl"
+        />
+        {/* Availability & Certified */}
+        <div className="absolute top-3 left-3 flex items-center gap-1">
+          <span
+            className={`w-3 h-3 rounded-full border-2 border-white ${
+              doc.available ? 'bg-green-400' : 'bg-gray-300'
+            }`}
+            title={doc.available ? 'Online' : 'Offline'}
           />
-        </div>
-
-        <div className="w-full grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 pt-5">
-          {filterDoc.length > 0 ? (
-            filterDoc.map((item, index) => (
-              <div
-                key={index}
-                className="flex flex-col justify-between border border-gray-300 rounded-xl bg-white shadow hover:shadow-xl hover:scale-[1.02] transition-transform duration-300 cursor-pointer h-full"
-              >
-                <img className="w-full h-56 object-cover bg-blue-50 rounded-t-xl" src={item.image} alt={item.name} />
-                <div className="flex flex-col justify-between p-4 text-center h-full">
-                  <div className="flex justify-center items-center gap-2 text-sm mb-1">
-                    <span className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : 'bg-gray-400'}`}></span>
-                    <span className={`${item.available ? 'text-green-600 font-medium' : 'text-gray-500'}`}>
-                      {item.available ? 'Чөлөөтэй' : 'Захиалгатай'}
-                    </span>
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
-                  <p className="text-sm text-gray-500">{item.speciality}</p>
-                  <p className="text-xs text-gray-400">{item.experience} туршлагатай</p>
-
-                  <div className="flex justify-center mt-1 text-yellow-500 text-sm">
-                    {[...Array(5)].map((_, i) => (
-                      <FaStar key={i} className={i < Math.round(item.rating || 4.5) ? 'text-yellow-400' : 'text-gray-300'} />
-                    ))}
-                    <span className="ml-2 text-xs text-gray-600">{item.rating?.toFixed(1) || '4.5'}</span>
-                  </div>
-
-                  <button
-                    onClick={() => navigate(`/appointment/${item._id}`)}
-                    className="bg-blue-600 text-white px-5 py-2 rounded-full text-sm hover:bg-blue-700 transition mt-4"
-                  >
-                    Цаг авах
-                  </button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-500 col-span-full text-center">Уучлаарай, тохирох эмч олдсонгүй.</p>
+          {doc.certified && (
+            <FaRegCheckCircle className="text-primary" title="Certified" />
           )}
+        </div>
+        {doc.topDoctor && (
+          <div className="absolute top-3 right-3 bg-yellow-300 text-yellow-900 px-2 py-1 rounded-full text-xs font-semibold shadow">
+            🏅 Шилдэг
+          </div>
+        )}
+      </div>
+      <div className="flex-1 flex flex-col p-4">
+        <h3 className="text-xl font-semibold text-center truncate mb-1 text-gray-900">
+          {doc.name}
+        </h3>
+        <div className="text-center text-sm text-gray-500 mb-1">
+          {doc.speciality}
+        </div>
+        <div className="text-center text-xs text-gray-400 mb-2">
+          {doc.experience} жил туршлагатай
+        </div>
+        <div className="flex justify-center items-center gap-1 text-yellow-400 mb-4">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <FaStar
+              key={i}
+              className={i < Math.round(doc.rating || 4.5) ? '' : 'text-gray-300'}
+            />
+          ))}
+          <span className="ml-1 text-xs text-gray-600">
+            {(doc.rating || 4.5).toFixed(1)}
+          </span>
+        </div>
+        <div className="flex justify-center gap-4 mt-auto">
+          <button
+            className="w-10 h-10 rounded-full bg-indigo-500 text-white flex items-center justify-center"
+            title="Чатлах"
+            onClick={e => {
+              e.stopPropagation();
+              /* TODO: implement chat navigation */
+            }}
+          >
+            <FaComment />
+          </button>
+          <button
+            className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center"
+            title="Цаг авах"
+            onClick={e => {
+              e.stopPropagation();
+              navigate(`/appointment/${doc._id}`);
+            }}
+          >
+            <FaCalendarAlt />
+          </button>
+        </div>
+      </div>
+    </motion.div>
+  );
+};
+
+// --- Doctor Modal (Info only) ---
+const DoctorModal = ({ doctor, onClose }) => {
+  if (!doctor) return null;
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
+      onClick={onClose}
+    >
+      <div
+        className="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6"
+        onClick={e => e.stopPropagation()}
+      >
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-xl text-gray-500 hover:text-gray-800"
+        >
+          ×
+        </button>
+        {/* Breadcrumbs */}
+        <nav className="text-sm mb-4">
+          <ul className="flex gap-2 text-gray-600">
+            <li>
+              <Link to="/" className="hover:underline">
+                Нүүр
+              </Link>{' '}
+              /
+            </li>
+            <li>
+              <Link to="/doctors" className="hover:underline">
+                Эмч хайх
+              </Link>{' '}
+              /
+            </li>
+            <li className="text-gray-900">{doctor.speciality}</li>
+          </ul>
+        </nav>
+        {/* Profile Info */}
+        <div className="flex flex-col items-center">
+          <img
+            src={doctor.image}
+            alt={doctor.name}
+            className="w-28 h-28 rounded-full object-contain mb-4"
+          />
+          <h2 className="text-2xl font-semibold mb-1">{doctor.name}</h2>
+          <div className="flex items-center gap-2 text-sm text-gray-500 mb-2">
+            <span>{doctor.speciality}</span>
+            {doctor.certified && <FaRegCheckCircle />}
+          </div>
+          <div className="text-xs text-gray-400 mb-4">
+            {doctor.experience} жил туршлагатай
+          </div>
+          <p className="text-gray-700 text-sm">
+            {doctor.bio || 'Дэлгэрэнгүй мэдээлэл удахгүй...'}
+          </p>
         </div>
       </div>
     </div>
+  );
+};
+
+// --- Main Doctors List ---
+const Doctors = () => {
+  const { speciality } = useParams();
+  const { doctors } = useContext(AppContext);
+  const navigate = useNavigate();
+  const [filtered, setFiltered] = useState([]);
+  const [modalDoc, setModalDoc] = useState(null);
+
+  useEffect(() => {
+    if (!doctors) return;
+    let list = [...doctors];
+    const spec = decodeURIComponent(speciality || '').toLowerCase();
+    if (spec && spec !== 'all doctors') {
+      list = list.filter(d => d.speciality.toLowerCase() === spec);
+    }
+    setFiltered(list);
+  }, [doctors, speciality]);
+
+  const specialties = [
+    'All Doctors',
+    'Клиник сэтгэл зүйч',
+    'Сэтгэцийн эмч',
+    'Хүүхдийн сэтгэл зүйч',
+    'Зан үйл судлаач',
+    'Сэтгэл засалч / зөвлөх',
+    'Гэр бүл, хосын сэтгэл зүйч',
+  ];
+
+  return (
+    <section className="px-4 py-12 bg-gray-50 min-h-screen">
+      <div className="max-w-7xl mx-auto flex gap-8">
+        {/* Sidebar */}
+        <div className="w-64 space-y-2 sticky top-4">
+          {specialties.map((spec, i) => {
+            const active =
+              decodeURIComponent(speciality || 'All Doctors').toLowerCase() ===
+              spec.toLowerCase();
+            return (
+              <button
+                key={i}
+                onClick={() =>
+                  navigate(`/doctors/${encodeURIComponent(spec)}`)
+                }
+                className={`w-full text-left px-4 py-2 rounded-lg transition ${
+                  active
+                    ? 'bg-primary text-white'
+                    : 'bg-white text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {spec === 'All Doctors' ? 'Бүх эмч нар' : spec}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Grid or loader */}
+        <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+          {!doctors
+            ? Array.from({ length: 8 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="animate-pulse h-80 bg-white rounded-2xl shadow"
+                />
+              ))
+            : filtered.length > 0
+            ? filtered.map(doc => (
+                <DoctorCard key={doc._id} doc={doc} onMore={setModalDoc} />
+              ))
+            : (
+                <p className="col-span-full text-center text-gray-500">
+                  Эмч олдсонгүй.
+                </p>
+              )}
+        </div>
+
+        {/* Modal */}
+        {modalDoc && (
+          <DoctorModal doctor={modalDoc} onClose={() => setModalDoc(null)} />
+        )}
+      </div>
+    </section>
   );
 };
 

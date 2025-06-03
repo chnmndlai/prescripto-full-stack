@@ -1,195 +1,367 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import { assets } from '../assets/assets';
 import RelatedDoctors from '../components/RelatedDoctors';
 import axios from 'axios';
 import { toast } from 'react-toastify';
+import {
+  FaCalendarAlt,
+  FaClock,
+  FaChevronLeft,
+  FaChevronRight,
+  FaLock,
+  FaTimesCircle,
+  FaCheckCircle,
+  FaUserMd,
+  FaMoneyBillWave,
+  FaUserEdit,
+  FaStickyNote
+} from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 
-const Appointment = () => {
+const DAY_PARTS = [
+  { key: 'morning',  label: 'Өглөө', icon: <FaClock className="inline mb-1 mr-1" />, range: [10, 13], emoji: '☀️' },
+  { key: 'day',      label: 'Өдөр',  icon: <FaClock className="inline mb-1 mr-1" />, range: [13, 17], emoji: '🌤️' },
+  { key: 'evening',  label: 'Орой',  icon: <FaClock className="inline mb-1 mr-1" />, range: [17, 20], emoji: '🌙' },
+];
+
+export default function Appointment() {
   const { docId } = useParams();
+  const navigate = useNavigate();
   const { doctors, currencySymbol, backendUrl, token, getDoctosData } = useContext(AppContext);
-  const daysOfWeek = ['Ням', 'Даваа', 'Мягмар', 'Лхагва', 'Пүрэв', 'Баасан', 'Бямба'];
 
   const [docInfo, setDocInfo] = useState(null);
-  const [docSlots, setDocSlots] = useState([]);
-  const [slotIndex, setSlotIndex] = useState(0);
-  const [slotTime, setSlotTime] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  const [selectedDayOffset, setSelectedDayOffset] = useState(0);
+  const [dayPart, setDayPart] = useState('morning');
+  const [selectedTime, setSelectedTime] = useState('');
   const [note, setNote] = useState('');
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [slotsByPart, setSlotsByPart] = useState({ morning: [], day: [], evening: [] });
+  const [noteCount, setNoteCount] = useState(0);
 
-  const navigate = useNavigate();
+  const stickyRef = useRef(null);
 
-  const fetchDocInfo = () => {
-    const doctor = doctors.find((doc) => doc._id === docId);
-    setDocInfo(doctor);
-  };
+  // Doc info fetch
+  useEffect(() => {
+    if (!doctors.length) return;
+    const doc = doctors.find(d => d._id === docId);
+    setDocInfo(doc);
+    setLoading(false);
+  }, [doctors, docId]);
 
-  const getAvailableSolts = () => {
-    setDocSlots([]);
-    const today = new Date();
+  // Slots calc
+  useEffect(() => {
+    if (!docInfo) return;
+    const now = new Date();
+    const day = new Date(now);
+    day.setDate(now.getDate() + selectedDayOffset);
 
-    for (let i = 0; i < 7; i++) {
-      const currentDate = new Date(today);
-      currentDate.setDate(today.getDate() + i);
+    const key = `${day.getDate()}_${day.getMonth() + 1}_${day.getFullYear()}`;
+    const booked = docInfo.slots_booked?.[key] || [];
 
-      const endTime = new Date(currentDate);
-      endTime.setHours(21, 0, 0, 0);
-
-      if (today.getDate() === currentDate.getDate()) {
-        currentDate.setHours(currentDate.getHours() > 10 ? currentDate.getHours() + 1 : 10);
-        currentDate.setMinutes(currentDate.getMinutes() > 30 ? 30 : 0);
-      } else {
-        currentDate.setHours(10);
-        currentDate.setMinutes(0);
-      }
-
-      const timeSlots = [];
-
-      while (currentDate < endTime) {
-        const formattedTime = currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        const slotDate = `${currentDate.getDate()}_${currentDate.getMonth() + 1}_${currentDate.getFullYear()}`;
-        const isSlotAvailable = !docInfo.slots_booked[slotDate]?.includes(formattedTime);
-
-        if (isSlotAvailable) {
-          timeSlots.push({ datetime: new Date(currentDate), time: formattedTime });
-        }
-
-        currentDate.setMinutes(currentDate.getMinutes() + 30);
-      }
-
-      setDocSlots(prev => [...prev, timeSlots]);
-    }
-  };
-
-  const bookAppointment = async () => {
-    if (!token) {
-      toast.warning('Нэвтрэх шаардлагатай');
-      return navigate('/login');
+    // Slot gen
+    const all = [];
+    let cur = new Date(day.setHours(10, 0, 0, 0));
+    const end = new Date(day.setHours(20, 0, 0, 0));
+    while (cur <= end) {
+      const t = cur.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      all.push({
+        time: t,
+        past: cur < new Date(),
+        booked: booked.includes(t),
+        date: new Date(cur)
+      });
+      cur = new Date(cur.getTime() + 30 * 60000);
     }
 
-    if (!slotTime) {
-      toast.error('Та цаг сонгоно уу.');
-      return;
-    }
+    // Group by range
+    const grouped = {};
+    DAY_PARTS.forEach(p => {
+      grouped[p.key] = all.filter(s => {
+        const h = s.date.getHours();
+        return h >= p.range[0] && h < p.range[1];
+      });
+    });
 
-    const date = docSlots[slotIndex][0].datetime;
-    const slotDate = `${date.getDate()}_${date.getMonth() + 1}_${date.getFullYear()}`;
+    setSlotsByPart(grouped);
+    setSelectedTime('');
+  }, [docInfo, selectedDayOffset]);
+
+  // Book
+  const handleBook = async () => {
+    if (!token) { toast.info('Нэвтрэх шаардлагатай'); return navigate('/login'); }
+    if (!selectedTime) { toast.error('Цаг сонгоно уу'); return; }
+
+    const day = new Date(); day.setDate(day.getDate() + selectedDayOffset);
+    const key = `${day.getDate()}_${day.getMonth() + 1}_${day.getFullYear()}`;
 
     try {
       const { data } = await axios.post(
         `${backendUrl}/api/user/book-appointment`,
-        { docId, slotDate, slotTime, note },
+        { docId, slotDate: key, slotTime: selectedTime, note },
         { headers: { token } }
       );
-
       if (data.success) {
         toast.success(data.message);
         getDoctosData();
         navigate('/my-appointments');
-      } else {
-        toast.error(data.message);
-      }
-    } catch (error) {
-      console.log(error);
-      toast.error(error.message);
+      } else toast.error(data.message);
+    } catch {
+      toast.error('Алдаа гарлаа');
     }
   };
 
-  useEffect(() => {
-    if (doctors.length > 0) fetchDocInfo();
-  }, [doctors, docId]);
+  if (loading) return <div className="py-20 text-center text-gray-500 animate-pulse">Loading…</div>;
+  if (!docInfo) return <div className="py-20 text-center text-red-500">Эмч олдсонгүй</div>;
 
-  useEffect(() => {
-    if (docInfo) getAvailableSolts();
-  }, [docInfo]);
+  // Date stuff
+  const today = new Date();
+  const chosenDate = new Date(today.setDate(today.getDate() + selectedDayOffset));
+  const weekday = chosenDate.toLocaleDateString('mn-MN', { weekday: 'short' });
+  const daynum = chosenDate.getDate();
 
-  return docInfo ? (
-    <div className="px-4">
-      <div className='flex flex-col sm:flex-row gap-4'>
-        <div>
-          <img className='bg-primary w-full sm:max-w-72 aspect-[3/4] object-cover rounded-lg shadow-md' src={docInfo.image} alt={docInfo.name} />
-        </div>
-
-        <div className='flex-1 border border-gray-300 rounded-xl p-8 bg-white shadow-md'>
-          <p className='flex items-center gap-2 text-3xl font-semibold text-gray-800'>
-            {docInfo.name} <img className='w-5' src={assets.verified_icon} alt="Баталгаажсан" title="Баталгаажсан эмч" />
-          </p>
-          <div className='flex items-center gap-2 mt-1 text-gray-600'>
-            <p>🧠 {docInfo.degree} - {docInfo.speciality}</p>
-            <button className='py-0.5 px-2 border text-xs rounded-full bg-gray-100'>⏳ {docInfo.experience}</button>
+  return (
+    <div className="max-w-4xl mx-auto p-4 space-y-8">
+      {/* Doctor Info */}
+      <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+        className="flex flex-col md:flex-row bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 gap-8 items-center"
+      >
+        <motion.div
+          className="relative flex-shrink-0 group"
+          whileHover={{ scale: 1.04 }}
+        >
+          <img
+            src={docInfo.image}
+            alt={docInfo.name}
+            className="w-28 h-28 object-cover rounded-full border-4 border-primary shadow-lg"
+          />
+          {/* Animated glow ring */}
+          <span className="absolute inset-0 rounded-full pointer-events-none group-hover:animate-pulse-glow border-2 border-primary/40" />
+        </motion.div>
+        <div className="flex-1 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="inline-flex items-center bg-primary/10 text-primary px-3 py-1 rounded-full font-bold text-lg">
+              <FaUserMd className="mr-2" /> {docInfo.name}
+            </span>
+            <span className="ml-2 bg-indigo-50 text-indigo-700 text-xs px-2 py-1 rounded-full">
+              <FaUserEdit className="mr-1 inline" /> {docInfo.speciality}
+            </span>
           </div>
-
-          <div className='mt-3'>
-            <p className='flex items-center gap-1 text-sm font-medium text-gray-700'>Тухай <img className='w-3' src={assets.info_icon} alt="Мэдээлэл" /></p>
-            <p className='text-sm text-gray-600 mt-1'>{docInfo.about || 'Тайлбар оруулаагүй байна.'}</p>
+          <div className="flex items-center gap-4 mt-2">
+            <span className="inline-flex items-center text-xs px-2 py-1 bg-gray-100 rounded-full">
+              <FaClock className="mr-1" /> {docInfo.experience} жил
+            </span>
+            <span className="inline-flex items-center text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
+              <FaMoneyBillWave className="mr-1" /> {currencySymbol}{docInfo.fees}
+            </span>
           </div>
-
-          <p className='text-gray-600 font-medium mt-4'>💰 Зөвлөгөөний үнэ: <span className='text-gray-900 font-bold'>{currencySymbol}{docInfo.fees}</span></p>
+          <p className="text-gray-600 dark:text-gray-300 mt-2">{docInfo.about || 'Тайлбар олдсонгүй'}</p>
         </div>
+      </motion.div>
+
+      {/* Day Selector */}
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.07, duration: 0.35 }}
+        className="flex items-center justify-between sticky top-2 z-30 bg-white/90 dark:bg-gray-900/90 rounded-2xl px-2 py-2 shadow"
+      >
+        <FaCalendarAlt className="text-xl text-primary" />
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setSelectedDayOffset(d => Math.max(d - 1, 0))}
+            disabled={selectedDayOffset === 0}
+            className="p-2 hover:bg-primary/10 rounded-full disabled:opacity-30 transition"
+            aria-label="Өмнөх өдөр"
+          >
+            <FaChevronLeft />
+          </button>
+
+          <select
+            value={selectedDayOffset}
+            onChange={e => setSelectedDayOffset(+e.target.value)}
+            className="px-4 py-2 rounded-full border border-gray-200 focus:ring-2 focus:ring-primary"
+            aria-label="Өдөр сонгох"
+          >
+            {Array.from({ length: 7 }).map((_, i) => {
+              const d = new Date(); d.setDate(d.getDate() + i);
+              const wd = d.toLocaleDateString('mn-MN', { weekday: 'short' });
+              const dn = d.getDate();
+              return (
+                <option key={i} value={i} className={i === 0 ? "font-bold bg-primary/20" : ""}>
+                  {i === 0 ? "Өнөөдөр" : `${wd} ${dn}`}
+                </option>
+              );
+            })}
+          </select>
+
+          <button
+            onClick={() => setSelectedDayOffset(d => Math.min(d + 1, 6))}
+            disabled={selectedDayOffset === 6}
+            className="p-2 hover:bg-primary/10 rounded-full disabled:opacity-30 transition"
+            aria-label="Дараагийн өдөр"
+          >
+            <FaChevronRight />
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Day Parts Tabs */}
+      <div className="flex flex-wrap justify-center gap-4 my-2">
+        {DAY_PARTS.map((p, i) => (
+          <motion.button
+            key={p.key}
+            onClick={() => setDayPart(p.key)}
+            whileHover={{ scale: 1.05, boxShadow: '0 2px 10px #8a63d233' }}
+            whileTap={{ scale: 0.97 }}
+            transition={{ duration: 0.18 }}
+            className={`
+              flex items-center gap-2 px-5 py-2 rounded-full font-semibold transition
+              ${dayPart === p.key
+                ? 'bg-gradient-to-r from-primary to-indigo-500 text-white shadow-lg'
+                : 'bg-gray-50 hover:bg-primary/10 text-gray-700'}
+            `}
+            aria-label={p.label}
+          >
+            <span>{p.icon}</span>
+            {p.label} <span>{p.emoji}</span>
+          </motion.button>
+        ))}
       </div>
 
-      <div className='sm:ml-72 sm:pl-4 mt-8 font-medium text-gray-700'>
-        <p className='text-lg mb-3'>📅 Захиалгын боломжит цагууд</p>
-        <div className='flex gap-3 overflow-x-auto'>
-          {docSlots.map((item, index) => (
-            <div
-              onClick={() => setSlotIndex(index)}
-              key={index}
-              className={`text-center py-4 px-3 rounded-xl min-w-16 cursor-pointer transition ${slotIndex === index ? 'bg-primary text-white ring-2 ring-blue-400 shadow' : 'bg-white border'}`}
-            >
-              <p className='text-sm'>{item[0] && daysOfWeek[item[0].datetime.getDay()]}</p>
-              <p className='text-xl font-semibold'>{item[0] && item[0].datetime.getDate()}</p>
+      {/* Slots Grid */}
+      <motion.div
+        className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4"
+        initial="hidden"
+        animate="visible"
+        variants={{
+          visible: { transition: { staggerChildren: 0.06 } },
+          hidden: {},
+        }}
+      >
+        <AnimatePresence>
+          {slotsByPart[dayPart]?.length
+            ? slotsByPart[dayPart].map((slot, idx) => (
+              <motion.button
+                key={slot.time}
+                whileHover={!slot.past && !slot.booked ? { scale: 1.06 } : {}}
+                whileTap={!slot.past && !slot.booked ? { scale: 0.96 } : {}}
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 18 }}
+                transition={{ delay: idx * 0.04 }}
+                onClick={() => !slot.past && !slot.booked && setSelectedTime(slot.time)}
+                tabIndex={slot.past || slot.booked ? -1 : 0}
+                aria-label={`Цаг ${slot.time}`}
+                className={`
+                  flex flex-col items-center py-3 rounded-xl border transition relative focus:ring-2 focus:ring-primary
+                  ${
+                    slot.past
+                      ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                      : slot.booked
+                        ? 'bg-red-100 text-red-400 cursor-not-allowed'
+                        : slot.time === selectedTime
+                          ? 'border-2 border-primary bg-gradient-to-tr from-primary/10 to-indigo-100 shadow-lg scale-105'
+                          : 'bg-white hover:bg-primary/10 text-gray-800'
+                  }
+                `}
+              >
+                <span className="font-bold text-lg">{slot.time}</span>
+                {slot.past && <FaLock className="text-xl absolute right-3 top-3 text-gray-300" aria-hidden />}
+                {slot.booked && <FaTimesCircle className="text-xl absolute right-3 top-3 text-red-300" aria-hidden />}
+                {slot.time === selectedTime && (
+                  <FaCheckCircle className="text-xl absolute right-3 top-3 text-primary animate-bounce" aria-label="Сонгогдсон" />
+                )}
+              </motion.button>
+            ))
+            : (
+              <motion.div
+                className="col-span-full flex flex-col items-center justify-center text-gray-400 py-8"
+                initial={{ opacity: 0, y: 18 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <FaClock size={48} />
+                <div className="mt-2">Чөлөөтэй цаг байхгүй байна</div>
+              </motion.div>
+            )
+          }
+        </AnimatePresence>
+      </motion.div>
+
+      {/* Sticky Summary */}
+      <AnimatePresence>
+        {selectedTime && (
+          <motion.div
+            ref={stickyRef}
+            initial={{ y: 80, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: 80, opacity: 0 }}
+            className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-white dark:bg-gray-900 shadow-2xl rounded-2xl px-8 py-4 flex flex-col sm:flex-row items-center gap-4 z-50 border border-primary/30"
+            style={{ boxShadow: "0 8px 36px 8px #867ae31a" }}
+          >
+            <div className="flex-1 flex flex-col items-center sm:items-start">
+              <p className="text-xs text-gray-500">Сонгосон:</p>
+              <div className="flex items-center gap-3 mt-1">
+                <span className="inline-flex items-center bg-primary/10 text-primary font-bold px-3 py-1 rounded-full text-sm">
+                  <FaCalendarAlt className="mr-1" />
+                  {weekday} {daynum}
+                </span>
+                <span className="inline-flex items-center bg-indigo-100 text-indigo-700 font-semibold px-3 py-1 rounded-full text-sm">
+                  <FaClock className="mr-1" />
+                  {selectedTime}
+                </span>
+              </div>
             </div>
-          ))}
-        </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setSelectedTime('')}
+                className="px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-full font-semibold"
+              >Болих</button>
+              <button
+                onClick={handleBook}
+                className="px-4 py-2 bg-primary hover:bg-primary-dark text-white rounded-full font-bold shadow"
+              >Цаг захиалах</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-        <div className='flex gap-3 flex-wrap mt-5'>
-          {docSlots[slotIndex]?.map((item, index) => (
-            <button
-              onClick={() => setSlotTime(item.time)}
-              key={index}
-              className={`px-5 py-2 rounded-full text-sm transition ${item.time === slotTime ? 'bg-primary text-white shadow' : 'border text-gray-600 hover:bg-gray-100'}`}
-            >
-              {item.time}
-            </button>
-          ))}
-        </div>
-
+      {/* Note */}
+      <div className="mt-6 relative">
+        <label className="block mb-2 font-semibold text-gray-700 flex items-center gap-2">
+          <FaStickyNote className="text-primary" /> Нэмэлт мэдээлэл <span className="text-xs ml-1 text-gray-400">({note.length}/240)</span>
+        </label>
         <textarea
           value={note}
-          onChange={(e) => setNote(e.target.value)}
-          className='w-full mt-6 p-3 border rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-300'
-          rows='3'
-          placeholder='📝 Нэмэлт мэдээлэл: Жишээ нь — Сүүлийн үед сэтгэл гутралтай байна...'
+          onChange={e => {
+            setNote(e.target.value.slice(0, 240));
+            setNoteCount(e.target.value.length);
+          }}
+          rows={3}
+          placeholder="📝 Таны асуулт, эмчид хэлэх зүйл, бусад..."
+          className="w-full border rounded-xl p-3 focus:ring-2 focus:ring-primary bg-gray-50 dark:bg-gray-800 resize-none"
+          maxLength={240}
         />
-
-        <button
-          onClick={() => setShowConfirm(true)}
-          className='bg-primary text-white px-10 py-3 mt-6 rounded-full hover:bg-blue-700 transition shadow'
-        >
-          Цаг захиалах
-        </button>
       </div>
 
-      {showConfirm && (
-        <div className="fixed inset-0 bg-black/30 flex justify-center items-center z-50">
-          <div className="bg-white p-6 rounded-xl shadow-lg w-full max-w-md text-center">
-            <h3 className="text-lg font-semibold mb-2">Захиалгыг баталгаажуулах уу?</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Та <b>{docInfo.name}</b> эмчтэй <b>{docSlots[slotIndex][0]?.datetime.toLocaleDateString()}</b> өдөр <b>{slotTime}</b> цагт уулзахдаа итгэлтэй байна уу?
-            </p>
-            <div className="flex justify-center gap-4">
-              <button onClick={() => setShowConfirm(false)} className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300">Болих</button>
-              <button onClick={bookAppointment} className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">Тийм</button>
-            </div>
-          </div>
-        </div>
-      )}
-
+      {/* Related Doctors */}
       <RelatedDoctors speciality={docInfo.speciality} docId={docId} />
-    </div>
-  ) : null;
-};
 
-export default Appointment;
+      {/* Pulse/Glow Animation for doctor */}
+      <style>{`
+        @keyframes pulse-glow {
+          0% { box-shadow: 0 0 0 0 #8a63d24c;}
+          70% { box-shadow: 0 0 0 16px #8a63d206;}
+          100% { box-shadow: 0 0 0 0 #8a63d24c;}
+        }
+        .group-hover\\:animate-pulse-glow:hover {
+          animation: pulse-glow 1.3s infinite;
+        }
+      `}</style>
+    </div>
+  );
+}

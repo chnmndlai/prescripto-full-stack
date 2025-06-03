@@ -1,139 +1,275 @@
-import React, { useContext, useState, useEffect } from 'react';
+import React, { useContext, useState, useEffect, useRef } from 'react';
 import { NavLink, useNavigate, Link } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
 import { assets } from '../assets/assets';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
+import { FaBars, FaTimes, FaChevronDown } from 'react-icons/fa';
+
+// Nav underline motion (framer-motion layoutId)
+const navLinks = [
+  { path: '/', label: 'Нүүр' },
+  { path: '/doctors', label: 'Эмч хайх' },
+  { path: '/advice', label: 'Зөвлөгөө' },
+  { path: '/quiz', label: 'Тест' },
+];
 
 const Navbar = ({ setShowChat }) => {
   const navigate = useNavigate();
+  const { token, setToken, userData } = useContext(AppContext);
+
+  const [isScrolled, setIsScrolled] = useState(false);
   const [showMenu, setShowMenu] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-  const { token, setToken, userData } = useContext(AppContext);
-  const [searchText, setSearchText] = useState('');
+
+  // scroll shadow
+  useEffect(() => {
+    const onScroll = () => setIsScrolled(window.scrollY > 10);
+    window.addEventListener('scroll', onScroll);
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Dropdown focus/keyboard
+  const dropdownRef = useRef(null);
+  useEffect(() => {
+    if (showDropdown && dropdownRef.current) dropdownRef.current.focus();
+  }, [showDropdown]);
+
+  // ESC to close mobile menu
+  useEffect(() => {
+    const onEsc = (e) => {
+      if (e.key === 'Escape') {
+        setShowMenu(false);
+        setShowDropdown(false);
+      }
+    };
+    window.addEventListener('keydown', onEsc);
+    return () => window.removeEventListener('keydown', onEsc);
+  }, []);
 
   const logout = () => {
     localStorage.removeItem('token');
-    setToken(false);
+    setToken(null);
     navigate('/login');
   };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      setShowMenu(false);
-      setShowDropdown(false);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+  // Nav item active style
+  const navLinkClass = ({ isActive }) =>
+    `relative px-5 py-2 rounded-md transition-all font-semibold text-base 
+     focus:outline-none focus:ring-2 focus:ring-primary
+     ${isActive ? 'text-primary' : 'text-gray-700 hover:text-primary'}`;
 
-  const navLinkStyle = ({ isActive }) =>
-    isActive ? 'text-primary font-semibold' : 'hover:text-primary transition';
-
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (searchText.trim()) {
-      navigate(`/search?q=${encodeURIComponent(searchText.trim())}`);
-    }
-  };
+  // Logo shine + scale animation
+  const [logoHover, setLogoHover] = useState(false);
 
   return (
     <motion.nav
-      initial={{ y: -40, opacity: 0 }}
+      initial={{ y: -50, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="sticky top-0 z-50 transition-all border-b bg-white"
+      transition={{ duration: 0.3 }}
+      className={`sticky top-0 z-50 backdrop-blur-[6px] bg-white/80 dark:bg-gray-900/90 transition-shadow py-2 ${isScrolled ? 'shadow-md' : ''}`}
     >
-      <div className='flex flex-wrap md:flex-nowrap items-center justify-between gap-4 px-6 md:px-10 py-4 text-sm'>
-
-        {/* ✅ Logo хэсэг */}
-        <Link to="/" className="flex items-center gap-3">
-          <img
+      <div className="container mx-auto flex items-center justify-between px-4">
+        {/* Logo */}
+        <Link
+          to="/"
+          className="flex items-center gap-2 group select-none"
+          tabIndex={0}
+          aria-label="Эхлэл"
+          onMouseEnter={() => setLogoHover(true)}
+          onMouseLeave={() => setLogoHover(false)}
+        >
+          <motion.img
             src={assets.logo}
-            alt="Лого"
-            className="h-10 w-10 object-contain cursor-pointer"
+            alt="logo"
+            className="h-10 w-10"
+            animate={logoHover ? { scale: 1.12, rotate: 5 } : { scale: 1, rotate: 0 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 18 }}
+            style={{ filter: logoHover ? 'drop-shadow(0 0 10px #a5b4fcbb)' : 'none' }}
           />
-          <span className="text-lg font-semibold hidden sm:inline-block">Prescripto</span>
+          {/* Shine effect */}
+          {logoHover && (
+            <motion.span
+              className="absolute left-4 top-3 w-7 h-6 pointer-events-none"
+              initial={{ x: -32, rotate: -30, opacity: 0.4 }}
+              animate={{ x: 35, rotate: 25, opacity: 0.9 }}
+              exit={{ x: 0, opacity: 0 }}
+              transition={{ duration: 0.7, repeat: 0 }}
+              style={{
+                background: 'linear-gradient(105deg,rgba(255,255,255,0.7) 0%,rgba(255,255,255,0.05) 80%)',
+                borderRadius: 6,
+                filter: 'blur(3px)'
+              }}
+            />
+          )}
+          <span className="text-xl font-bold text-gray-800 dark:text-white transition group-hover:text-primary">Сэтгэл зүй</span>
         </Link>
 
-        {/* 🔍 Search Bar */}
-        <form onSubmit={handleSearch} className='flex-1 max-w-md hidden md:flex'>
-          <input
-            type='text'
-            placeholder='Хайлт хийх...'
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            className='w-full px-4 py-2 rounded-full border focus:outline-none focus:ring-2 focus:ring-primary text-sm bg-white'
-          />
-        </form>
-
-        {/* 🧭 Navigation links */}
-        <ul className='hidden md:flex items-center gap-5 font-medium'>
-          <NavLink to='/' className={navLinkStyle}><li>Нүүр</li></NavLink>
-          <NavLink to='/doctors' className={navLinkStyle}><li>Эмч хайх</li></NavLink>
-          <NavLink to='/advice' className={navLinkStyle}><li>Зөвлөгөө</li></NavLink>
-          <NavLink to='/quiz' className={navLinkStyle}><li>Сэтгэлзүйн тест</li></NavLink>
+        {/* Navbar links */}
+        <ul className="hidden md:flex items-center lg:gap-8 gap-4 relative">
+          {navLinks.map(({ path, label }) => (
+            <NavLink
+              key={path}
+              to={path}
+              className={navLinkClass}
+              tabIndex={0}
+              aria-current={window.location.pathname === path ? "page" : undefined}
+              aria-label={label}
+            >
+              {({ isActive }) => (
+                <span className="relative flex flex-col items-center">
+                  <span
+                    className={`transition group-hover:font-extrabold ${
+                      isActive ? "font-extrabold" : ""
+                    }`}
+                  >
+                    {label}
+                  </span>
+                  {/* Animated underline */}
+                  {isActive && (
+                    <motion.span
+                      layoutId="nav-underline"
+                      className="absolute -bottom-1 left-0 w-full h-[2.5px] rounded bg-primary"
+                      transition={{ type: "spring", stiffness: 350, damping: 22 }}
+                    />
+                  )}
+                </span>
+              )}
+            </NavLink>
+          ))}
         </ul>
 
-        {/* 🔘 Зөвхөн login хийсэн үед: зөвхөн "Чат эхлүүлэх" */}
-        {token && (
-          <div className='hidden lg:flex gap-3'>
+        {/* Actions */}
+        <div className="hidden lg:flex items-center gap-4">
+          {token && (
             <button
               onClick={() => setShowChat(true)}
-              className='text-sm px-4 py-2 rounded-full bg-orange-500 text-white hover:bg-orange-600'
+              className="btn btn-primary"
+              tabIndex={0}
+              aria-label="Чат эхлүүлэх"
             >
               Чат эхлүүлэх
             </button>
-          </div>
-        )}
+          )}
 
-        {/* 🧑 Профайл / Login */}
-        <div className='flex items-center gap-3 relative'>
           {token && userData ? (
-            <div className='relative'>
-              <div
-                onClick={() => setShowDropdown(!showDropdown)}
-                className='flex items-center gap-2 cursor-pointer'
+            <div className="relative">
+              <button
+                onClick={() => setShowDropdown(prev => !prev)}
+                className="flex items-center gap-2 focus:outline-none"
+                aria-label="User menu"
+                tabIndex={0}
               >
-                <img className='w-8 h-8 rounded-full object-cover' src={userData.image} alt="User" />
-                <span className='hidden md:block text-sm'>
-                  {userData.name?.split(' ')[0] || 'Хэрэглэгч'}
+                <motion.img
+                  src={userData.image}
+                  alt="avatar"
+                  className="w-8 h-8 rounded-full border-2 border-indigo-200 group-hover:border-indigo-500 transition"
+                  whileHover={{ scale: 1.14, borderColor: "#a5b4fc" }}
+                />
+                <span className="hidden md:inline text-gray-800 dark:text-gray-200 font-semibold hover:text-primary transition group-hover:text-primary">
+                  {userData.name.split(' ')[0]}
                 </span>
-              </div>
-
-              {/* Dropdown menu */}
-              {showDropdown && (
-                <div
-                  className='absolute top-12 right-0 z-50 bg-white rounded-lg shadow p-4 text-sm space-y-2'
-                  onMouseLeave={() => setShowDropdown(false)}
-                >
-                  <p onClick={() => { navigate('/my-profile'); setShowDropdown(false); }} className='hover:text-primary cursor-pointer'>
-                    Миний профайл
-                  </p>
-                  <p onClick={() => { navigate('/my-appointments'); setShowDropdown(false); }} className='hover:text-primary cursor-pointer'>
-                    Цаг захиалгууд
-                  </p>
-                  <p onClick={() => { navigate('/saved-advice'); setShowDropdown(false); }} className='hover:text-primary cursor-pointer'>
-                    Хадгалсан зөвлөгөө
-                  </p>
-                  <p onClick={() => { logout(); setShowDropdown(false); }} className='hover:text-primary cursor-pointer'>
-                    Гарах
-                  </p>
-                </div>
-              )}
+                <FaChevronDown className="text-gray-600" />
+              </button>
+              <AnimatePresence>
+                {showDropdown && (
+                  <motion.div
+                    ref={dropdownRef}
+                    tabIndex={0}
+                    initial={{ opacity: 0, scale: 0.94, y: -10 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.94, y: -10 }}
+                    transition={{ duration: 0.18 }}
+                    className="absolute right-0 mt-2 w-52 bg-white dark:bg-gray-800 rounded-xl shadow-2xl py-2 z-50 border"
+                    onBlur={e => {
+                      if (!e.currentTarget.contains(e.relatedTarget)) setShowDropdown(false);
+                    }}
+                  >
+                    {/* Dropdown Arrow */}
+                    <span className="absolute -top-2 right-8 w-4 h-4 bg-white dark:bg-gray-800 border-l border-t border-gray-200 dark:border-gray-700 rotate-45 z-0" />
+                    <Link to="/my-profile" className="block px-5 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition" tabIndex={0}>Миний профайл</Link>
+                    <Link to="/my-appointments" className="block px-5 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition" tabIndex={0}>Цаг захиалгууд</Link>
+                    <Link to="/saved-advice" className="block px-5 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition" tabIndex={0}>Хадгалсан зөвлөгөө</Link>
+                    <button onClick={logout} className="w-full text-left px-5 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition" tabIndex={0}>Гарах</button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           ) : (
             <button
               onClick={() => navigate('/login')}
-              className='bg-primary text-white px-4 py-2 rounded-full text-sm font-medium hidden md:block'
+              className="btn btn-outline btn-primary"
+              tabIndex={0}
+              aria-label="Нэвтрэх"
             >
-              Нэвтрэх / Бүртгүүлэх
+              Нэвтрэх
             </button>
           )}
         </div>
 
-        {/* ☰ Mobile menu icon */}
-        <img onClick={() => setShowMenu(true)} src={assets.menu_icon} className='w-6 md:hidden cursor-pointer' alt="Цэс" />
+        {/* Mobile toggle */}
+        <button onClick={() => setShowMenu(prev => !prev)} className="md:hidden focus:outline-none" aria-label="Цэс">
+          {showMenu ? <FaTimes size={22} /> : <FaBars size={22} />}
+        </button>
       </div>
+
+      {/* Mobile menu */}
+      <AnimatePresence>
+        {showMenu && (
+          <motion.div
+            initial={{ x: '100%' }}
+            animate={{ x: 0 }}
+            exit={{ x: '100%' }}
+            transition={{ type: 'spring', stiffness: 320, damping: 30 }}
+            className="fixed inset-0 bg-white dark:bg-gray-900 z-40 p-6 flex flex-col overflow-y-auto"
+            tabIndex={0}
+            aria-modal="true"
+            aria-label="Mobile navigation"
+          >
+            <div className="flex items-center justify-between mb-8">
+              <Link to="/" onClick={() => setShowMenu(false)} className="flex items-center gap-2">
+                <img src={assets.logo} alt="logo" className="h-8 w-8" />
+                <span className="text-xl font-bold text-gray-800 dark:text-white">Сэтгэл зүй</span>
+              </Link>
+              <button onClick={() => setShowMenu(false)} className="focus:outline-none" aria-label="Цэс хаах">
+                <FaTimes size={24} />
+              </button>
+            </div>
+            <nav className="flex-1 overflow-y-auto">
+              <ul className="space-y-5 text-lg font-semibold">
+                {navLinks.map(({ path, label }) => (
+                  <NavLink
+                    key={path}
+                    to={path}
+                    className={navLinkClass}
+                    onClick={() => setShowMenu(false)}
+                    tabIndex={0}
+                    aria-label={label}
+                  >
+                    {label}
+                  </NavLink>
+                ))}
+              </ul>
+            </nav>
+            <div className="mt-auto">
+              {token && (
+                <button
+                  onClick={() => { setShowChat(true); setShowMenu(false); }}
+                  className="w-full mb-4 btn btn-primary"
+                  tabIndex={0}
+                  aria-label="Чат эхлүүлэх"
+                >
+                  Чат эхлүүлэх
+                </button>
+              )}
+              {token ? (
+                <button onClick={() => { logout(); setShowMenu(false); }} className="w-full btn btn-outline" tabIndex={0}>Гарах</button>
+              ) : (
+                <button onClick={() => { navigate('/login'); setShowMenu(false); }} className="w-full btn btn-outline btn-primary" tabIndex={0}>Нэвтрэх</button>
+              )}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.nav>
   );
 };

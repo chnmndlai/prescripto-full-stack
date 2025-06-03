@@ -53,8 +53,10 @@ const App = () => {
       {/* 🔹 Floating popup chatbot */}
       {showChat && (
         <div className="fixed bottom-20 right-6 z-50 shadow-lg">
+          
           <Chatbot onClose={() => setShowChat(false)} />
         </div>
+        
       )}
 
       <Footer />

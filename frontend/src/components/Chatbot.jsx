@@ -1,7 +1,38 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { FaPaperPlane } from 'react-icons/fa';
-import { motion } from 'framer-motion';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { FaPaperPlane, FaBroom, FaChevronDown, FaChevronUp, FaRegSmile, FaRobot, FaBolt, FaGraduationCap, FaPhoneAlt } from 'react-icons/fa';
+import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
+
+// Typing animation component
+const TypingDots = () => (
+  <span className="inline-flex gap-1 pl-2 align-middle">
+    <span className="dot bg-gray-400" />
+    <span className="dot bg-gray-400" style={{ animationDelay: '0.2s' }} />
+    <span className="dot bg-gray-400" style={{ animationDelay: '0.4s' }} />
+    <style>{`
+      .dot {
+        display: inline-block;
+        width: 6px; height: 6px;
+        border-radius: 50%;
+        margin-right: 2px;
+        animation: blink 1s infinite;
+        vertical-align: middle;
+      }
+      @keyframes blink {
+        0%, 80%, 100% { opacity: 0.25; }
+        40% { opacity: 1; }
+      }
+    `}</style>
+  </span>
+);
+
+// Quick Reply Icon
+const quickReplyIcon = text => {
+  if (text.includes("Тест")) return <FaBolt className="mr-2" />;
+  if (text.includes("Сургалт")) return <FaGraduationCap className="mr-2" />;
+  if (text.includes("Зөвлөгөө")) return <FaPhoneAlt className="mr-2" />;
+  return <FaRegSmile className="mr-2" />;
+};
 
 const Chatbot = ({ onClose }) => {
   const [messages, setMessages] = useState(() => {
@@ -9,19 +40,56 @@ const Chatbot = ({ onClose }) => {
     return saved
       ? JSON.parse(saved)
       : [
-          {
-            role: 'assistant',
-            content: '👋 Сайн байна уу! Prescripto chatbot-д тавтай морил!',
-            buttons: ['🧠 Тест бөглөх', '📚 Сургалт', '📞 Зөвлөгөө авах'],
-          },
-        ];
+        {
+          role: 'assistant',
+          content: '👋 Сайн байна уу! Prescripto chatbot-д тавтай морил!',
+          buttons: ['🧠 Тест бөглөх', '📚 Сургалт', '📞 Зөвлөгөө авах'],
+        },
+      ];
   });
 
   const [userInput, setUserInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const [minimized, setMinimized] = useState(false);
   const chatEndRef = useRef(null);
+  const inputRef = useRef(null);
   const navigate = useNavigate();
 
+  // Online status mock
+  const [online, setOnline] = useState(true);
+
+  // Escape key to close
+  useEffect(() => {
+    const escHandler = e => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', escHandler);
+    return () => window.removeEventListener('keydown', escHandler);
+  }, [onClose]);
+
+  // Scroll to bottom on new message
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, minimized]);
+
+  // Save to localStorage
+  useEffect(() => {
+    localStorage.setItem('chatlog', JSON.stringify(messages));
+  }, [messages]);
+
+  // History clear
+  const handleClearHistory = () => {
+    setMessages([
+      {
+        role: 'assistant',
+        content: '👋 Сайн байна уу! Prescripto chatbot-д тавтай морил!',
+        buttons: ['🧠 Тест бөглөх', '📚 Сургалт', '📞 Зөвлөгөө авах'],
+      }
+    ]);
+    setUserInput('');
+  };
+
+  // API system message
   const baseSystemMessage = {
     role: 'system',
     content: `
@@ -32,22 +100,14 @@ const Chatbot = ({ onClose }) => {
     `,
   };
 
-  const scrollToBottom = () => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(scrollToBottom, [messages]);
-
-  useEffect(() => {
-    localStorage.setItem('chatlog', JSON.stringify(messages));
-  }, [messages]);
-
+  // Handle message send
   const sendMessage = async (text) => {
     const newMessages = [...messages, { role: 'user', content: text }];
     setMessages(newMessages);
     setUserInput('');
     setLoading(true);
 
+    // Quick reply routing
     if (text === '🧠 Тест бөглөх') {
       navigate('/quiz/diabetes');
       return;
@@ -78,7 +138,6 @@ const Chatbot = ({ onClose }) => {
       const reply = data.choices?.[0]?.message?.content || '🤖 Хариулт ирсэнгүй.';
       setMessages([...newMessages, { role: 'assistant', content: reply }]);
     } catch (err) {
-      console.error(err);
       setMessages([
         ...newMessages,
         { role: 'assistant', content: '⚠️ Алдаа гарлаа. Дахин оролдоно уу.' },
@@ -88,87 +147,202 @@ const Chatbot = ({ onClose }) => {
     }
   };
 
-  const handleSend = () => {
-    if (userInput.trim()) {
-      sendMessage(userInput);
-    }
-  };
+  const handleSend = useCallback(() => {
+    if (userInput.trim()) sendMessage(userInput);
+  }, [userInput, messages]);
 
-  const handleQuickReply = (text) => {
-    sendMessage(text);
-  };
+  // Accessibility: autoFocus & shadow
+  const [inputFocused, setInputFocused] = useState(false);
 
+  // Minimize handler
+  if (minimized) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 32, scale: 0.6 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 32, scale: 0.7 }}
+        className="fixed bottom-24 right-6 z-50 shadow-2xl"
+      >
+        <button
+          className="flex items-center gap-3 bg-indigo-700 text-white rounded-full px-6 py-3 shadow-lg border border-indigo-300 text-lg font-bold hover:bg-indigo-800 transition"
+          aria-label="Чат нээх"
+          onClick={() => setMinimized(false)}
+        >
+          <FaRobot size={22} className="animate-bounce" />
+          Prescripto chatbot
+          <FaChevronUp className="ml-1" />
+        </button>
+      </motion.div>
+    );
+  }
+
+  // Render
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20, scale: 0.95 }}
+      initial={{ opacity: 0, y: 24, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
-      transition={{ duration: 0.3 }}
-      className="w-[360px] h-[500px] bg-white shadow-xl rounded-2xl flex flex-col border border-gray-200 overflow-hidden fixed bottom-24 right-6 z-50"
+      exit={{ opacity: 0, y: 20, scale: 0.97 }}
+      transition={{ duration: 0.26, type: 'spring', stiffness: 180 }}
+      className="
+        w-[370px] max-w-full h-[520px] bg-white rounded-3xl border border-gray-100 shadow-2xl flex flex-col
+        overflow-hidden fixed bottom-24 right-6 z-50"
+      style={{
+        boxShadow: '0 8px 32px 0 rgba(32,45,100,0.19), 0 2px 8px rgba(64,64,110,0.09)',
+        backdropFilter: 'blur(10px)',
+      }}
+      tabIndex={0}
+      aria-label="Prescripto chatbot popup"
     >
       {/* Header */}
-      <div className="bg-indigo-600 text-white py-2 px-4 flex items-center justify-between rounded-t-2xl">
-        <h2 className="font-semibold text-sm">Prescripto 🤖 Chatbot</h2>
-        <button onClick={onClose} className="text-white hover:text-red-300 font-bold text-lg">
-          ×
-        </button>
+      <div className="bg-gradient-to-r from-indigo-600 to-violet-500 text-white py-3 px-5 flex items-center justify-between rounded-t-3xl shadow sticky top-0 z-10">
+        <div className="flex items-center gap-2">
+          <span className="text-2xl animate-spin-slow">
+            🤖
+          </span>
+          <span className="font-bold">Prescripto</span>
+          <span className={`ml-1 px-2 py-0.5 rounded-full text-xs font-semibold 
+            ${online ? 'bg-green-500/80 text-white' : 'bg-gray-300 text-gray-600'}`}>
+            {online ? 'Онлайн' : 'Оффлайн'}
+          </span>
+        </div>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setMinimized(true)}
+            title="Жижигрүүлэх"
+            className="text-white/80 hover:text-white px-2 text-xl focus:outline-none"
+            tabIndex={0}
+          >
+            <FaChevronDown />
+          </button>
+          <button
+            onClick={onClose}
+            className="text-white hover:text-red-200 font-bold text-2xl leading-none transition"
+            title="Хаах"
+            aria-label="Чат хаах"
+            tabIndex={0}
+          >
+            ×
+          </button>
+        </div>
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-gray-50">
-        {messages.map((msg, idx) => (
-          <div key={idx} className="animate-fade-in">
-            <div
-              className={`text-sm px-4 py-2 rounded-xl max-w-[80%] whitespace-pre-wrap ${
-                msg.role === 'user'
-                  ? 'bg-indigo-100 ml-auto text-right'
-                  : 'bg-white border border-gray-200 ml-0 text-left shadow-sm'
-              }`}
+      <div className="flex-1 overflow-y-auto px-4 py-5 bg-gradient-to-b from-gray-50 to-white" tabIndex={0}>
+        <AnimatePresence>
+          {messages.map((msg, idx) => (
+            <motion.div
+              key={idx}
+              className={`flex flex-col ${msg.role === 'user' ? 'items-end' : 'items-start'} mb-4`}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 16 }}
+              transition={{ duration: 0.18 }}
             >
-              {msg.content}
-            </div>
-
-            {msg.buttons && (
-              <div className="mt-2 flex flex-col gap-2 w-[85%]">
-                {msg.buttons.map((btnText, i) => (
-                  <button
-                    key={i}
-                    onClick={() => handleQuickReply(btnText)}
-                    className="text-sm px-4 py-2 bg-gray-100 hover:bg-indigo-100 border border-gray-200 text-gray-800 rounded-lg text-left transition"
-                  >
-                    {btnText}
-                  </button>
-                ))}
+              <div
+                className={`
+                  px-5 py-2 max-w-[87%] text-[15px] rounded-2xl shadow-md
+                  whitespace-pre-line break-words transition-all
+                  ${msg.role === 'user'
+                    ? 'bg-gradient-to-tr from-indigo-500 to-violet-500 text-white font-medium shadow-lg rounded-br-lg'
+                    : 'bg-white/80 text-gray-900 shadow border border-gray-100 backdrop-blur rounded-bl-lg'
+                  }
+                `}
+                style={{
+                  borderTopLeftRadius: '1.7rem',
+                  borderTopRightRadius: '1.7rem',
+                  borderBottomLeftRadius: msg.role === 'user' ? '1.7rem' : '0.7rem',
+                  borderBottomRightRadius: msg.role === 'user' ? '0.7rem' : '1.7rem',
+                  marginLeft: msg.role === 'user' ? 'auto' : 0,
+                  marginRight: msg.role === 'user' ? 0 : 'auto',
+                  fontWeight: msg.role === 'assistant' && idx === 0 ? '500' : undefined,
+                  fontSize: msg.role === 'assistant' && idx === 0 ? '16px' : undefined,
+                }}
+              >
+                {msg.content}
               </div>
-            )}
-          </div>
-        ))}
-
+              {/* Quick Reply Buttons */}
+              {msg.buttons && (
+                <div className="mt-3 flex flex-row flex-wrap gap-2">
+                  {msg.buttons.map((btnText, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleQuickReply(btnText)}
+                      className="
+                        px-5 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 font-semibold rounded-full shadow
+                        flex items-center gap-2 hover:bg-indigo-100 hover:text-indigo-900 transition text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300
+                      "
+                      tabIndex={0}
+                      aria-label={btnText}
+                    >
+                      {quickReplyIcon(btnText)}
+                      {btnText}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          ))}
+        </AnimatePresence>
         {loading && (
-          <div className="text-xs text-gray-500 animate-pulse">🤖 Хариулт бичиж байна...</div>
+          <div className="text-xs text-gray-500 flex items-center gap-1 mt-2 ml-2 animate-pulse">
+            <FaRobot className="text-indigo-400" />
+            Хариулт бичиж байна <TypingDots />
+          </div>
         )}
         <div ref={chatEndRef} />
       </div>
 
       {/* Input */}
-      <div className="border-t px-3 py-2 bg-white flex items-center gap-2">
+      <div className="border-t px-3 py-3 bg-white flex items-center gap-2 relative">
         <input
+          ref={inputRef}
           type="text"
-          className="flex-1 text-sm px-3 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-indigo-400"
+          className={`flex-1 text-[15px] px-4 py-2 border border-gray-200 rounded-full shadow-sm focus:outline-none focus:ring-2 transition-all duration-200
+            ${inputFocused ? 'focus:ring-indigo-400 ring-2 ring-indigo-200 shadow-lg' : ''}
+          `}
           placeholder="Та юу асуух вэ?"
           value={userInput}
-          onChange={(e) => setUserInput(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSend()}
+          onChange={e => setUserInput(e.target.value)}
+          onKeyDown={e => e.key === 'Enter' && handleSend()}
+          onFocus={() => setInputFocused(true)}
+          onBlur={() => setInputFocused(false)}
+          tabIndex={0}
+          aria-label="Чат бичих"
+          autoFocus
+          maxLength={512}
         />
         <button
           onClick={handleSend}
           disabled={loading}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-full shadow-md transition"
+          className="
+            bg-indigo-600 hover:bg-indigo-700 text-white flex items-center gap-2 px-5 py-2 rounded-full shadow-lg
+            transition disabled:opacity-60 focus:outline-none focus:ring-2 focus:ring-indigo-400
+          "
+          style={{ boxShadow: '0 2px 10px 0 #8a63d252' }}
+          aria-label="Илгээх"
+          tabIndex={0}
         >
+          <FaPaperPlane size={18} className="opacity-85" />
           Илгээх
+        </button>
+        {/* Clear history button */}
+        <button
+          className="absolute right-20 top-3 text-indigo-400 hover:text-red-400 transition text-lg"
+          onClick={handleClearHistory}
+          title="Түүх цэвэрлэх"
+          aria-label="Чат түүх цэвэрлэх"
+          tabIndex={0}
+        >
+          <FaBroom />
         </button>
       </div>
     </motion.div>
   );
+
+  // Quick reply shortcut
+  function handleQuickReply(text) {
+    sendMessage(text);
+  }
 };
 
 export default Chatbot;
