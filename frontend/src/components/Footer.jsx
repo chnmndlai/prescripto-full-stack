@@ -130,7 +130,7 @@ const Footer = () => {
 
       {/* Footer Bottom */}
       <div className="text-center text-xs opacity-70 py-6 border-t border-gray-200">
-        © {new Date().getFullYear()} <span className="font-semibold text-primary">Prescripto</span> — Бүх эрх хуулиар хамгаалагдсан.
+        © {new Date().getFullYear()} <span className="font-semibold text-primary">Сэтгэл зүй</span> — Бүх эрх хуулиар хамгаалагдсан.
       </div>
     </footer>
   );

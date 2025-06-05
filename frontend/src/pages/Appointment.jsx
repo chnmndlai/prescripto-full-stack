@@ -100,7 +100,8 @@ export default function Appointment() {
       const { data } = await axios.post(
         `${backendUrl}/api/user/book-appointment`,
         { docId, slotDate: key, slotTime: selectedTime, note },
-        { headers: { token } }
+        { headers: { Authorization: `Bearer ${token}` }
+      }
       );
       if (data.success) {
         toast.success(data.message);
@@ -153,7 +154,7 @@ export default function Appointment() {
           </div>
           <div className="flex items-center gap-4 mt-2">
             <span className="inline-flex items-center text-xs px-2 py-1 bg-gray-100 rounded-full">
-              <FaClock className="mr-1" /> {docInfo.experience} жил
+              <FaClock className="mr-1" /> {docInfo.experience} 
             </span>
             <span className="inline-flex items-center text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">
               <FaMoneyBillWave className="mr-1" /> {currencySymbol}{docInfo.fees}

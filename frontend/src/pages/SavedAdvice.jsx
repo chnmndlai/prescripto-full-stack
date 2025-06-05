@@ -228,14 +228,13 @@ const SavedAdvice = () => {
       {/* Doctor chip */}
       {advice.doctor && (
         <button
-          className="absolute bottom-3 left-3 flex items-center gap-1 bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full shadow hover:bg-indigo-200 transition"
-          onClick={e => { e.stopPropagation(); handleDoctorClick(advice.doctor.name); }}
-          tabIndex={0}
-          aria-label={advice.doctor.name}
-        >
-          <FaUserMd className="text-base" />
-          {advice.doctor.name}
-        </button>
+        className="flex items-center gap-1 bg-indigo-100 text-indigo-700 text-xs px-2 py-0.5 rounded-full shadow hover:bg-indigo-200 transition"
+        onClick={e => { e.stopPropagation(); handleDoctorClick(advice.doctor.name); }}
+      >
+        <FaUserMd className="text-sm" />
+        {advice.doctor.name}
+      </button>
+      
       )}
       {/* Main image (list/grid) */}
       <div className={viewMode === 'grid' ? "w-full h-40" : "w-32 h-32 flex-shrink-0"}>

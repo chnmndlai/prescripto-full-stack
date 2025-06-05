@@ -68,9 +68,10 @@ const AppContextProvider = (props) => {
   // ✅ Хэрэглэгчийн мэдээлэл ачаалах
   const loadUserProfileData = async () => {
     try {
-      const { data } = await axios.get(backendUrl + '/api/user/get-profile', {
-        headers: { token },
+      const { data } = await axios.get(`${backendUrl}/api/user/get-profile`, {
+        headers: { Authorization: `Bearer ${token}` }
       });
+      
 
       if (data.success) {
         setUserData(data.userData);

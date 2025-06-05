@@ -1,4 +1,3 @@
-// src/components/SpecialityMenu.jsx
 import React, { useState } from 'react';
 import { specialityData } from '../assets/assets';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +11,7 @@ const SpecialityMenu = () => {
   return (
     <div
       id="speciality"
-      className="flex flex-col items-center gap-4 py-16 text-[#262626] px-4"
+      className="flex flex-col items-center gap-4 py-8 text-[#262626] px-4"
     >
       <h1 className="text-3xl font-semibold">Мэргэжлээр хайх</h1>
       <p className="sm:w-1/2 text-center text-sm text-gray-600 mb-1">
@@ -52,7 +51,7 @@ const SpecialityMenu = () => {
                 <img className="w-12 h-12 object-contain" src={item.image} alt={item.speciality} />
               </div>
               {/* Speciality нэр */}
-              <p className="mt-1 text-center font-bold text-base text-indigo-600 group-hover:text-[#8a63d2] transition">
+              <p className="mt-1 text-center font-bold text-base text-indigo-600 group-hover:text-[#8a63d2] transition leading-tight min-h-[48px]">
                 {item.speciality}
               </p>
               {/* "Цаг захиалах" товч */}

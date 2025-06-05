@@ -46,7 +46,7 @@ const DoctorDashboard = () => {
       if (res.data.success) setStats(res.data);
       else setStatsError('Статистик олдсонгүй');
     } catch {
-      setStatsError('Статистик ачаалах үед алдаа гарлаа');
+      setStatsError('Одоогоор тест бөглөөгүй байна ');
     } finally {
       setStatsLoading(false);
     }

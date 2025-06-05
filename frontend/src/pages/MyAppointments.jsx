@@ -59,7 +59,11 @@ const MyAppointments = () => {
     try {
       const { data } = await axios.get(
         `${backendUrl}/api/user/appointments`,
-        { headers: { token } }
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       );
       setAppointments(data.appointments.reverse());
     } catch {
@@ -68,6 +72,7 @@ const MyAppointments = () => {
       setLoading(false);
     }
   };
+  
 
   useEffect(() => {
     if (token) fetchAppointments();
